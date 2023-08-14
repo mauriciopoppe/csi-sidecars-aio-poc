@@ -109,5 +109,5 @@ cat <<'EOF' > .cloudbuild.sh
 gcr_cloud_build
 EOF
 
-# chmod +x .cloudbuild.sh
-# PULL_BASE_REF=master REGISTRY_NAME=gcr.io/foo CSI_PROW_BUILD_PLATFORMS="linux amd64 amd64" ./.cloudbuild.sh
+# TODO: This command doesn't work in my arm mac
+# docker run -v $PWD:/app -w /app debian /bin/bash -c 'apt-get -y update; apt-get -y install make curl; chmod +x .cloudbuild.sh && PULL_BASE_REF=master REGISTRY_NAME=gcr.io/foo CSI_PROW_BUILD_PLATFORMS="linux amd64 amd64" ./.cloudbuild.sh'
