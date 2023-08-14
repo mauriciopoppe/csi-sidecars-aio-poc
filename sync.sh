@@ -88,7 +88,11 @@ go work use ./staging/src/github.com/kubernetes-csi/csi-lib-utils
 go mod tidy
 
 # checkpoint: test that we can build attacher
-# make build
+if ! grep -q "HelloWorld" cmd/csi-sidecars/main.go; then
+  echo "Expected to find override to test that go workspaces work!"
+  exit 1
+fi
+make build
 
 cat <<'EOF' > Dockerfile
 FROM gcr.io/distroless/static:latest
@@ -105,5 +109,5 @@ cat <<'EOF' > .cloudbuild.sh
 gcr_cloud_build
 EOF
 
-chmod +x .cloudbuild.sh
-PULL_BASE_REF=master REGISTRY_NAME=gcr.io/foo CSI_PROW_BUILD_PLATFORMS="linux amd64 amd64" ./.cloudbuild.sh
+# chmod +x .cloudbuild.sh
+# PULL_BASE_REF=master REGISTRY_NAME=gcr.io/foo CSI_PROW_BUILD_PLATFORMS="linux amd64 amd64" ./.cloudbuild.sh
