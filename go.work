@@ -1,0 +1,6 @@
+go 1.21.0
+
+use (
+	.
+	./staging/src/github.com/kubernetes-csi/csi-lib-utils
+)
