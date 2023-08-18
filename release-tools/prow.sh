@@ -25,7 +25,7 @@
 #   a Kubernetes release
 #
 # The intended usage of this script is that individual repos import
-# csi-staging/src/github.com/kubernetes-csi/csi-release-tools, then link their top-level prow.sh to this or
+# csi-release-tools, then link their top-level prow.sh to this or
 # include it in that file. When including it, several of the variables
 # can be overridden in the top-level prow.sh to customize the script
 # for the repo.
@@ -78,7 +78,7 @@ version_to_git () {
 # the list of windows versions was matched from:
 # - https://hub.docker.com/_/microsoft-windows-nanoserver
 # - https://hub.docker.com/_/microsoft-windows-servercore
-configvar CSI_PROW_BUILD_PLATFORMS "linux amd64 amd64; linux ppc64le ppc64le -ppc64le; linux s390x s390x -s390x; linux arm arm -arm; linux arm64 arm64 -arm64; linux arm arm/v7 -armv7; windows amd64 amd64 .exe nanoserver:1809 servercore:ltsc2019; windows amd64 amd64 .exe nanoserver:20H2 servercore:20H2; windows amd64 amd64 .exe nanoserver:ltsc2022 servercore:ltsc2022" "Go target platforms (= GOOS + GOARCH) and file suffix of the resulting binaries"
+configvar CSI_PROW_BUILD_PLATFORMS "linux amd64 amd64; linux ppc64le ppc64le -ppc64le; linux s390x s390x -s390x; linux arm arm -arm; linux arm64 arm64 -arm64; linux arm arm/v7 -armv7; windows amd64 amd64 .exe nanoserver:1809 servercore:ltsc2019; windows amd64 amd64 .exe nanoserver:ltsc2022 servercore:ltsc2022" "Go target platforms (= GOOS + GOARCH) and file suffix of the resulting binaries"
 
 # If we have a vendor directory, then use it. We must be careful to only
 # use this for "make" invocations inside the project's repo itself because
@@ -651,7 +651,7 @@ delete_cluster_inside_prow_job() {
 
     # Inside a real Prow job it is better to clean up at runtime
     # instead of leaving that to the Prow job cleanup code
-    # because the later sometimes times out (https://github.com/kubernetes-csi/csi-staging/src/github.com/kubernetes-csi/csi-release-tools/issues/24#issuecomment-554765872).
+    # because the later sometimes times out (https://github.com/kubernetes-csi/csi-release-tools/issues/24#issuecomment-554765872).
     #
     # This is also a good time to collect logs.
     if [ "$JOB_NAME" ]; then
@@ -1239,7 +1239,7 @@ main () {
         run_with_go "${CSI_PROW_GO_VERSION_BUILD}" make all "GOFLAGS_VENDOR=${GOFLAGS_VENDOR}" "BUILD_PLATFORMS=${CSI_PROW_BUILD_PLATFORMS}" || die "'make all' failed"
         # We don't want test failures to prevent E2E testing below, because the failure
         # might have been minor or unavoidable, for example when experimenting with
-        # changes in "staging/src/github.com/kubernetes-csi/csi-release-tools" in a PR (that fails the "is staging/src/github.com/kubernetes-csi/csi-release-tools unmodified"
+        # changes in "release-tools" in a PR (that fails the "is release-tools unmodified"
         # test).
         if tests_enabled "unit"; then
             if [ -f Gopkg.toml ] && ! install_dep; then

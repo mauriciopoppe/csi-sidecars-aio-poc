@@ -6,11 +6,18 @@ See https://docs.google.com/document/d/1z7OU79YBnvlaDgcvmtYVnUAYFX1w9lyrgiPTV7RX
 
 For the POC most of the code is generated through `sync.sh`.
 
+Requirements:
+
+- https://github.com/BurntSushi/ripgrep
+- https://www.npmjs.com/package/trash
+
 To start from scratch:
 
 ```
-rm -rf cmd pkg staging .cloudbuild.sh Dockerfile Makefile go.mod go.sum go.work go.work.sum
-./sync.sh
+# cleanup first
+./hack/do_cleanup.sh
+# synchronize files next
+./hack/do_sync.sh
 ```
 
 Logs:

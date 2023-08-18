@@ -18,7 +18,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-# The csi-staging/src/github.com/kubernetes-csi/csi-release-tools directory.
+# The csi-release-tools directory.
 TOOLS="$(dirname "${BASH_SOURCE[0]}")"
 . "${TOOLS}/util.sh"
 

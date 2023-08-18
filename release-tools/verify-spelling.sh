@@ -20,7 +20,7 @@ set -o pipefail
 
 TOOL_VERSION="v0.3.4"
 
-# The csi-staging/src/github.com/kubernetes-csi/csi-release-tools directory (absolute path).
+# The csi-release-tools directory (absolute path).
 TOOLS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
 # Directory to check. Default is the parent of the tools themselves.

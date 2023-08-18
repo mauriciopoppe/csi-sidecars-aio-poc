@@ -31,7 +31,7 @@ elif [ -f go.mod ]; then
     # shellcheck disable=SC2235
     if [ "${JOB_NAME}" ] &&
            ( [ "${JOB_TYPE}" != "presubmit" ] ||
-                 [ "$( (git diff "${PULL_BASE_SHA}..HEAD" -- go.mod go.sum vendor staging/src/github.com/kubernetes-csi/csi-release-tools;
+                 [ "$( (git diff "${PULL_BASE_SHA}..HEAD" -- go.mod go.sum vendor release-tools;
                         git diff "${PULL_BASE_SHA}..HEAD" | grep -e '^@@.*@@ import (' -e '^[+-]import') |
 		           wc -l)" -eq 0 ] ); then
 	echo "Skipping vendor check because the Prow pre-submit job does not affect dependencies."

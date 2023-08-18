@@ -1,6 +1,6 @@
-#! /bin/bash
+#!/usr/bin/env bash
 
-# Copyright 2021 The Kubernetes Authors.
+# Copyright 2019 The Kubernetes Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# shellcheck disable=SC1091
-. staging/src/github.com/kubernetes-csi/csi-release-tools/prow.sh
-
-gcr_cloud_build
+if [ -f Gopkg.toml ]; then
+    echo "Repo uses 'dep' for vendoring."
+    (set -x; dep ensure)
+elif [ -f go.mod ]; then
+    release-tools/verify-go-version.sh "go"
+    (set -x; env GO111MODULE=on go mod tidy && env GO111MODULE=on go mod vendor)
+fi

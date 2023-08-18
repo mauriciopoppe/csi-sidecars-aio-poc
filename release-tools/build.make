@@ -250,7 +250,7 @@ test-fmt:
 # running it all the time would defeat the purpose of vendoring:
 # - not handling a PR or
 # - the fabricated merge commit leaves go.mod, go.sum and vendor dir unchanged
-# - staging/src/github.com/kubernetes-csi/csi-release-tools also didn't change (changing rules or Go version might lead to
+# - release-tools also didn't change (changing rules or Go version might lead to
 #   a different result and thus must be tested)
 # - import statements not changed (because if they change, go.mod might have to be updated)
 #
@@ -276,17 +276,17 @@ test-fmt:
 test: test-vendor
 test-vendor:
 	@ echo; echo "### $@:"
-	@ ./staging/src/github.com/kubernetes-csi/csi-release-tools/verify-vendor.sh
+	@ ./release-tools/verify-vendor.sh
 
 .PHONY: test-subtree
 test: test-subtree
 test-subtree:
 	@ echo; echo "### $@:"
-	./staging/src/github.com/kubernetes-csi/csi-release-tools/verify-subtree.sh staging/src/github.com/kubernetes-csi/csi-release-tools
+	./release-tools/verify-subtree.sh release-tools
 
 # Components can extend the set of directories which must pass shellcheck.
-# The default is to check only the staging/src/github.com/kubernetes-csi/csi-release-tools directory itself.
-TEST_SHELLCHECK_DIRS=staging/src/github.com/kubernetes-csi/csi-release-tools
+# The default is to check only the release-tools directory itself.
+TEST_SHELLCHECK_DIRS=release-tools
 .PHONY: test-shellcheck
 test: test-shellcheck
 test-shellcheck:
@@ -299,7 +299,7 @@ test-shellcheck:
 	for dir in $(abspath $(TEST_SHELLCHECK_DIRS)); do \
 		echo; \
 		echo "$$dir:"; \
-		./staging/src/github.com/kubernetes-csi/csi-release-tools/verify-shellcheck.sh "$$dir" || ret=1; \
+		./release-tools/verify-shellcheck.sh "$$dir" || ret=1; \
 	done; \
 	exit $$ret
 
@@ -309,16 +309,16 @@ test-shellcheck:
 # invocation.
 .PHONY: check-go-version-%
 check-go-version-%:
-	./staging/src/github.com/kubernetes-csi/csi-release-tools/verify-go-version.sh "$*"
+	./release-tools/verify-go-version.sh "$*"
 
 # Test for spelling errors.
 .PHONY: test-spelling
 test-spelling:
 	@ echo; echo "### $@:"
-	@ ./staging/src/github.com/kubernetes-csi/csi-release-tools/verify-spelling.sh "$(pwd)"
+	@ ./release-tools/verify-spelling.sh "$(pwd)"
 
 # Test the boilerplates of the files.
 .PHONY: test-boilerplate
 test-boilerplate:
 	@ echo; echo "### $@:"
-	@ ./staging/src/github.com/kubernetes-csi/csi-release-tools/verify-boilerplate.sh "$(pwd)"
+	@ ./release-tools/verify-boilerplate.sh "$(pwd)"

@@ -1,4 +1,4 @@
-# [csi-staging/src/github.com/kubernetes-csi/csi-release-tools](https://github.com/kubernetes-csi/csi-staging/src/github.com/kubernetes-csi/csi-release-tools)
+# [csi-release-tools](https://github.com/kubernetes-csi/csi-release-tools)
 
 These build and test rules can be shared between different Go projects
 without modifications. Customization for the different projects happen
@@ -19,12 +19,12 @@ The expected repository layout is:
  - `cmd/*/*.go` - source code for each command
  - `cmd/*/Dockerfile` - docker file for each command or
    Dockerfile in the root when only building a single command
- - `Makefile` - includes `staging/src/github.com/kubernetes-csi/csi-release-tools/build.make` and sets
+ - `Makefile` - includes `release-tools/build.make` and sets
    configuration variables
- - `.prow.sh` script which imports `staging/src/github.com/kubernetes-csi/csi-release-tools/prow.sh`
+ - `.prow.sh` script which imports `release-tools/prow.sh`
    and may contain further customization
  - `.cloudbuild.sh` and `cloudbuild.yaml` as symlinks to
-   the corresponding files in `staging/src/github.com/kubernetes-csi/csi-release-tools` or (if necessary)
+   the corresponding files in `release-tools` or (if necessary)
    as custom files
 
 To create a release, tag a certain revision with a name that
@@ -44,22 +44,22 @@ Sharing and updating
 
 [`git subtree`](https://github.com/git/git/blob/HEAD/contrib/subtree/git-subtree.txt)
 is the recommended way of maintaining a copy of the rules inside the
-`staging/src/github.com/kubernetes-csi/csi-release-tools` directory of a project. This way, it is possible to make
+`release-tools` directory of a project. This way, it is possible to make
 changes also locally, test them and then push them back to the shared
 repository at a later time.
 
 We no longer care about importing the full commit history, so `--squash` should be used
-when submitting a `staging/src/github.com/kubernetes-csi/csi-release-tools` update. Also make sure that the PR for that
+when submitting a `release-tools` update. Also make sure that the PR for that
 contains the automatically generated commit message in the PR description.
 It contains the list of individual commits that were squashed. The script from
-https://github.com/kubernetes-csi/csi-staging/src/github.com/kubernetes-csi/csi-release-tools/issues/7 can create such
+https://github.com/kubernetes-csi/csi-release-tools/issues/7 can create such
 PRs automatically.
 
 Cheat sheet:
 
-- `git subtree add --squash --prefix=staging/src/github.com/kubernetes-csi/csi-release-tools https://github.com/kubernetes-csi/csi-staging/src/github.com/kubernetes-csi/csi-release-tools.git master` - add release tools to a repo which does not have them yet (only once)
-- `git subtree pull --squash --prefix=staging/src/github.com/kubernetes-csi/csi-release-tools https://github.com/kubernetes-csi/csi-staging/src/github.com/kubernetes-csi/csi-release-tools.git master` - update local copy to latest upstream (whenever upstream changes)
-- edit, `git commit`, `git subtree push --prefix=staging/src/github.com/kubernetes-csi/csi-release-tools git@github.com:<user>/csi-staging/src/github.com/kubernetes-csi/csi-release-tools.git <my-new-or-existing-branch>` - push to a new branch before submitting a PR
+- `git subtree add --squash --prefix=release-tools https://github.com/kubernetes-csi/csi-release-tools.git master` - add release tools to a repo which does not have them yet (only once)
+- `git subtree pull --squash --prefix=release-tools https://github.com/kubernetes-csi/csi-release-tools.git master` - update local copy to latest upstream (whenever upstream changes)
+- edit, `git commit`, `git subtree push --prefix=release-tools git@github.com:<user>/csi-release-tools.git <my-new-or-existing-branch>` - push to a new branch before submitting a PR
 
 verify-shellcheck.sh
 --------------------
@@ -83,7 +83,7 @@ control to it:
 ``` bash
 #! /bin/bash -e
 
-. staging/src/github.com/kubernetes-csi/csi-release-tools/prow.sh
+. release-tools/prow.sh
 main
 ```
 
@@ -122,7 +122,7 @@ Dependencies and vendoring
 --------------------------
 
 Most projects will (eventually) use `go mod` to manage
-dependencies. `dep` is also still supported by `csi-staging/src/github.com/kubernetes-csi/csi-release-tools`,
+dependencies. `dep` is also still supported by `csi-release-tools`,
 but not documented here because it's not recommended anymore.
 
 The usual instructions for using [go
@@ -155,7 +155,7 @@ longer deemed necessary, then a project can also remove the directory.
 Conversion of a repository that uses `dep` to `go mod` can be done with:
 
     GO111MODULE=on go mod init
-    staging/src/github.com/kubernetes-csi/csi-release-tools/go-get-kubernetes.sh <current Kubernetes version from Gopkg.toml>
+    release-tools/go-get-kubernetes.sh <current Kubernetes version from Gopkg.toml>
     GO111MODULE=on go mod tidy
     GO111MODULE=on go mod vendor
     git rm -f Gopkg.toml Gopkg.lock
@@ -173,5 +173,5 @@ the fake `v0.0.0` versions
 `go-get-kubernetes.sh` script can be used to update all packages in
 lockstep to a different Kubernetes version. Example usage:
 ```
-$ ./staging/src/github.com/kubernetes-csi/csi-release-tools/go-get-kubernetes.sh 1.16.4
+$ ./release-tools/go-get-kubernetes.sh 1.16.4
 ```

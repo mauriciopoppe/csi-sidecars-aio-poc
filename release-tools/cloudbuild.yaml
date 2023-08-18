@@ -1,10 +1,10 @@
 # A configuration file for multi-arch image building with the Google cloud build service.
 #
 # Repos using this file must:
-# - import csi-staging/src/github.com/kubernetes-csi/csi-release-tools
-# - add a symlink cloudbuild.yaml -> staging/src/github.com/kubernetes-csi/csi-release-tools/cloudbuild.yaml
+# - import csi-release-tools
+# - add a symlink cloudbuild.yaml -> release-tools/cloudbuild.yaml
 # - add a .cloudbuild.sh which can be a custom file or a symlink
-#   to staging/src/github.com/kubernetes-csi/csi-release-tools/cloudbuild.sh
+#   to release-tools/cloudbuild.sh
 # - accept "binary" as build argument in their Dockerfile(s) (see
 #   https://github.com/pohly/node-driver-registrar/blob/3018101987b0bb6da2a2657de607174d6e3728f7/Dockerfile#L4-L6)
 #   because binaries will get built for different architectures and then
@@ -24,7 +24,7 @@ options:
   substitution_option: ALLOW_LOOSE
 steps:
   # The image must contain bash and curl. Ideally it should also contain
-  # the desired version of Go (currently defined in staging/src/github.com/kubernetes-csi/csi-release-tools/prow.sh),
+  # the desired version of Go (currently defined in release-tools/prow.sh),
   # but that just speeds up the build and is not required.
   - name: 'gcr.io/k8s-testimages/gcb-docker-gcloud:v20230623-56e06d7c18'
     entrypoint: ./.cloudbuild.sh

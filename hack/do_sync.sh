@@ -10,7 +10,6 @@ cond_exec() {
   echo $@
 }
 
-cond_exec trash pkg cmd staging go.mod go.sum go.work go.work.sum
 mkdir -p pkg cmd/csi-sidecars/ staging/src/github.com/kubernetes-csi/
 
 if [[ ! -d pkg/attacher ]]; then
@@ -40,21 +39,18 @@ fi
 
 go mod tidy
 
-csi_release_tools=staging/src/github.com/kubernetes-csi/csi-release-tools
+csi_release_tools=release-tools
 if [[ ! -d ${csi_release_tools} ]]; then
   git clone https://github.com/kubernetes-csi/csi-release-tools ${csi_release_tools}
 
   trash ${csi_release_tools}/.git
-
-  (cd $csi_release_tools; rg "release-tools" --files-with-matches | \
-    xargs sed -i "s%release-tools%${csi_release_tools}%g")
 fi
 
 cat <<\EOF >Makefile
 CMDS="csi-sidecars"
 all: build
 
-include staging/src/github.com/kubernetes-csi/csi-release-tools/build.make
+include release-tools/build.make
 EOF
 
 csi_lib_utils=staging/src/github.com/kubernetes-csi/csi-lib-utils
@@ -105,9 +101,10 @@ ENTRYPOINT ["/csi-sidecars"]
 EOF
 
 cat <<'EOF' > .cloudbuild.sh
-. staging/src/github.com/kubernetes-csi/csi-release-tools/prow.sh
+. release-tools/prow.sh
 gcr_cloud_build
 EOF
 
 # TODO: This command doesn't work in my arm mac
-# docker run -v $PWD:/app -w /app debian /bin/bash -c 'apt-get -y update; apt-get -y install make curl; chmod +x .cloudbuild.sh && PULL_BASE_REF=master REGISTRY_NAME=gcr.io/foo CSI_PROW_BUILD_PLATFORMS="linux amd64 amd64" ./.cloudbuild.sh'
+# chmod +x .cloudbuild.sh
+# docker run -v $PWD:/app -w /app debian /bin/bash -c 'apt-get -y update; apt-get -y install make curl; PULL_BASE_REF=master REGISTRY_NAME=gcr.io/foo CSI_PROW_BUILD_PLATFORMS="linux amd64 amd64" ./.cloudbuild.sh'

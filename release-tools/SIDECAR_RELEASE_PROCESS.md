@@ -26,14 +26,14 @@ naming convention `<hostpath-deployment-version>-on-<kubernetes-version>`.
 1. "-on-master" jobs are the closest reflection to the new Kubernetes version.
 1. Fixes to our prow.sh CI script can be tested in the [CSI hostpath
    repo](https://github.com/kubernetes-csi/csi-driver-host-path) by modifying
-   [prow.sh](https://github.com/kubernetes-csi/csi-driver-host-path/blob/HEAD/staging/src/github.com/kubernetes-csi/csi-release-tools/prow.sh)
+   [prow.sh](https://github.com/kubernetes-csi/csi-driver-host-path/blob/HEAD/release-tools/prow.sh)
    along with any overrides in
    [.prow.sh](https://github.com/kubernetes-csi/csi-driver-host-path/blob/HEAD/.prow.sh)
    to mirror the failing environment. Once e2e tests are passing (verify-unit tests
-   will fail), then the prow.sh changes can be submitted to [csi-staging/src/github.com/kubernetes-csi/csi-release-tools](https://github.com/kubernetes-csi/csi-staging/src/github.com/kubernetes-csi/csi-release-tools).
+   will fail), then the prow.sh changes can be submitted to [csi-release-tools](https://github.com/kubernetes-csi/csi-release-tools).
 1. Changes can then be updated in all the sidecar repos and hostpath driver repo
    by following the [update
-   instructions](https://github.com/kubernetes-csi/csi-staging/src/github.com/kubernetes-csi/csi-release-tools/blob/HEAD/README.md#sharing-and-updating).
+   instructions](https://github.com/kubernetes-csi/csi-release-tools/blob/HEAD/README.md#sharing-and-updating).
 1. New pull and CI jobs are configured by adding new K8s versions to the top of
    [gen-jobs.sh](https://github.com/kubernetes/test-infra/blob/HEAD/config/jobs/kubernetes-csi/gen-jobs.sh).
    New pull jobs that have been unverified should be initially made optional by
@@ -157,10 +157,10 @@ Promoted images can be viewed at https://console.cloud.google.com/gcr/images/k8s
    Kubernetes release. However, jobs require less resources when they
    don't need to build those images from the Kubernetes source code.
    This change needs to be tried out in a PR against a component
-   first, then get submitted against csi-staging/src/github.com/kubernetes-csi/csi-release-tools.
-1. Optional: propagate the updated csi-staging/src/github.com/kubernetes-csi/csi-release-tools to all components
+   first, then get submitted against csi-release-tools.
+1. Optional: propagate the updated csi-release-tools to all components
    with the script from
-   https://github.com/kubernetes-csi/csi-staging/src/github.com/kubernetes-csi/csi-release-tools/issues/7#issuecomment-707025402
+   https://github.com/kubernetes-csi/csi-release-tools/issues/7#issuecomment-707025402
 1. Once it is likely to work in all components, unset
    `experimental_k8s_version` and submit the updated jobs.
 1. Once all sidecars for the new Kubernetes release are released,
@@ -176,7 +176,7 @@ Promoted images can be viewed at https://console.cloud.google.com/gcr/images/k8s
 1. Create a new csi-driver-host-path release.
 1. Bump `CSI_PROW_DRIVER_VERSION` in prow.sh to that new release and
    (eventually) roll that change out to all repos by updating
-   `staging/src/github.com/kubernetes-csi/csi-release-tools` in them. This is used when testing manually. The
+   `release-tools` in them. This is used when testing manually. The
    Prow jobs override that value, so also update
    `hostpath_driver_version` in
    https://github.com/kubernetes/test-infra/blob/91b04e6af3a40a9bcff25aa030850a4721e2dd2b/config/jobs/kubernetes-csi/gen-jobs.sh#L46-L47
