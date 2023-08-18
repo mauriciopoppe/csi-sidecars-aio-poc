@@ -76,12 +76,17 @@ EOF
   if grep -q "// Connect to CSI" cmd/csi-sidecars/main.go; then
     sed -i "s%// Connect to CSI.%// Override\!\nconnection.HelloWorld()%g" cmd/csi-sidecars/main.go
   fi
+
+  if ! grep -q "./staging/src/github.com/kubernetes-csi/csi-lib-utils" go.mod; then
+    echo "replace github.com/kubernetes-csi/csi-lib-utils => ./staging/src/github.com/kubernetes-csi/csi-lib-utils\n" >> go.mod
+  fi
 fi
 
 trash go.work go.sum
 go work init .
 go work use ./staging/src/github.com/kubernetes-csi/csi-lib-utils
 go mod tidy
+go mod vendor
 
 # checkpoint: test that we can build attacher
 if ! grep -q "HelloWorld" cmd/csi-sidecars/main.go; then
