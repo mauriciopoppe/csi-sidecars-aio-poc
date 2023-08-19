@@ -3,12 +3,27 @@ set -euxo pipefail
 
 FROM_SCRATCH="${FROM_SCRATCH:-false}"
 
+# cond_exec executes arguments if FROM_SCRATCH=true
+# otherwise it just echo them
 cond_exec() {
   if [[ $FROM_SCRATCH == "true" ]]; then
     eval $@
   fi
   echo $@
 }
+
+if [[ ! $(go version) == *go1.22* ]]; then
+  echo "Install go1.22, please read the README.md"
+  exit 1
+fi
+if ! command -v rg; then
+  echo "Install ripgrep"
+  exit 1
+fi
+if ! command -v trash; then
+  echo "Install the command trash"
+  exit 1
+fi
 
 mkdir -p pkg cmd/csi-sidecars/ staging/src/github.com/kubernetes-csi/
 
@@ -78,7 +93,7 @@ EOF
   fi
 
   if ! grep -q "./staging/src/github.com/kubernetes-csi/csi-lib-utils" go.mod; then
-    echo "replace github.com/kubernetes-csi/csi-lib-utils => ./staging/src/github.com/kubernetes-csi/csi-lib-utils\n" >> go.mod
+    echo "replace github.com/kubernetes-csi/csi-lib-utils => ./staging/src/github.com/kubernetes-csi/csi-lib-utils" >> go.mod
   fi
 fi
 
@@ -86,7 +101,7 @@ trash go.work go.sum
 go work init .
 go work use ./staging/src/github.com/kubernetes-csi/csi-lib-utils
 go mod tidy
-go mod vendor
+go work vendor
 
 # checkpoint: test that we can build attacher
 if ! grep -q "HelloWorld" cmd/csi-sidecars/main.go; then

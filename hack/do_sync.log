@@ -1,0 +1,93 @@
++ FROM_SCRATCH=false
+++ go version
++ [[ ! go version devel go1.22-89a457844f Mon Jul 24 18:09:22 2023 +0000 darwin/arm64 == *go1.22* ]]
++ command -v rg
+/opt/homebrew/bin/rg
++ command -v trash
+/Users/mauriciopoppe/n/bin/trash
++ mkdir -p pkg cmd/csi-sidecars/ staging/src/github.com/kubernetes-csi/
++ [[ ! -d pkg/attacher ]]
++ git clone https://github.com/kubernetes-csi/external-attacher pkg/attacher
+Cloning into 'pkg/attacher'...
++ cp pkg/attacher/go.mod go.mod
++ sed -i '1 s%.*%module github.com/kubernetes-csi/csi-sidecars%' go.mod
++ trash pkg/attacher/.git
++ trash pkg/attacher/.github
++ trash pkg/attacher/vendor
++ trash pkg/attacher/release-tools
++ trash pkg/attacher/go.mod
++ trash pkg/attacher/go.sum
++ trash pkg/attacher/Dockerfile
++ trash pkg/attacher/.cloudbuild.sh
++ trash pkg/attacher/cloudbuild.yaml
++ trash pkg/attacher/.prow.sh
++ trash pkg/attacher/OWNER_ALIASES
++ trash pkg/attacher/Makefile
++ cd pkg/attacher
++ rg github.com/kubernetes-csi/external-attacher/ --files-with-matches
++ xargs sed -i s%github.com/kubernetes-csi/external-attacher/%github.com/kubernetes-csi/csi-sidecars/pkg/attacher/%g
++ cp pkg/attacher/cmd/csi-attacher/main.go cmd/csi-sidecars/main.go
++ go mod tidy
++ csi_release_tools=release-tools
++ [[ ! -d release-tools ]]
++ git clone https://github.com/kubernetes-csi/csi-release-tools release-tools
+Cloning into 'release-tools'...
++ trash release-tools/.git
++ cat
++ csi_lib_utils=staging/src/github.com/kubernetes-csi/csi-lib-utils
++ [[ ! -d staging/src/github.com/kubernetes-csi/csi-lib-utils ]]
++ git clone https://github.com/kubernetes-csi/csi-lib-utils staging/src/github.com/kubernetes-csi/csi-lib-utils
+Cloning into 'staging/src/github.com/kubernetes-csi/csi-lib-utils'...
++ trash staging/src/github.com/kubernetes-csi/csi-lib-utils/.git
++ trash staging/src/github.com/kubernetes-csi/csi-lib-utils/.github
++ trash staging/src/github.com/kubernetes-csi/csi-lib-utils/vendor
++ trash staging/src/github.com/kubernetes-csi/csi-lib-utils/release-tools
++ cat
++ grep -q '// Connect to CSI' cmd/csi-sidecars/main.go
++ sed -i 's%// Connect to CSI.%// Override\!\nconnection.HelloWorld()%g' cmd/csi-sidecars/main.go
++ grep -q ./staging/src/github.com/kubernetes-csi/csi-lib-utils go.mod
++ echo 'replace github.com/kubernetes-csi/csi-lib-utils => ./staging/src/github.com/kubernetes-csi/csi-lib-utils'
++ trash go.work go.sum
++ go work init .
++ go work use ./staging/src/github.com/kubernetes-csi/csi-lib-utils
++ go mod tidy
++ go work vendor
++ grep -q HelloWorld cmd/csi-sidecars/main.go
++ make build
+./release-tools/verify-go-version.sh "go"
+
+======================================================
+                  WARNING
+
+  This projects is tested with Go v1.20.
+  Your current Go version is v1.22.
+  This may or may not be close enough.
+
+  In particular test-gofmt and test-vendor
+  are known to be sensitive to the version of
+  Go.
+======================================================
+
+mkdir -p bin
+# os_arch_seen captures all of the $os-$arch-$buildx_platform seen for the current binary
+# that we want to build, if we've seen an $os-$arch-$buildx_platform before it means that
+# we don't need to build it again, this is done to avoid building
+# the windows binary multiple times (see the default value of $BUILD_PLATFORMS)
+export os_arch_seen="" && echo '' | tr ';' '\n' | while read -r os arch buildx_platform suffix base_image addon_image; do \
+	os_arch_seen_pre=${os_arch_seen%%$os-$arch-$buildx_platform*}; \
+	if ! [ ${#os_arch_seen_pre} = ${#os_arch_seen} ]; then \
+		continue; \
+	fi; \
+	if ! (set -x; cd ./cmd/"csi-sidecars" && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build  -a -ldflags ' -X main.version=c969eca1931e0cd3f1a5b53461763e0c3428fa6b -extldflags "-static"' -o "/Users/mauriciopoppe/go/src/github.com/kubernetes-csi/csi-sidecars/bin/"csi-sidecars"$suffix" .); then \
+		echo "Building "csi-sidecars" for GOOS=$os GOARCH=$arch failed, see error(s) above."; \
+		exit 1; \
+	fi; \
+	os_arch_seen+=";$os-$arch-$buildx_platform"; \
+done
++ cd ./cmd/csi-sidecars
++ CGO_ENABLED=0
++ GOOS=
++ GOARCH=
++ go build -a -ldflags ' -X main.version=c969eca1931e0cd3f1a5b53461763e0c3428fa6b -extldflags "-static"' -o /Users/mauriciopoppe/go/src/github.com/kubernetes-csi/csi-sidecars/bin/csi-sidecars .
++ cat
++ cat
