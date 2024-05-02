@@ -1,5 +1,10 @@
 #!/bin/bash
 set -euxo pipefail
 
+TRASH="trash"
+if ! command -v trash; then
+  TRASH="rm -rf"
+fi
+
 # removes all the generated files
-trash pkg release-tools cmd staging vendor go.mod go.sum go.work go.work.sum
+${TRASH} pkg release-tools cmd staging vendor go.mod go.sum go.work go.work.sum tmp
