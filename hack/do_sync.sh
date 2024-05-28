@@ -48,42 +48,42 @@ for SIDECAR in attacher provisioner resizer; do
     ${TRASH} pkg/${SIDECAR}/Makefile
 
     (cd pkg/${SIDECAR}; rg "github.com/kubernetes-csi/external-${SIDECAR}/" --files-with-matches | \
-      xargs sed -i "s%github.com/kubernetes-csi/external-${SIDECAR}/%github.com/kubernetes-csi/csi-sidecars/pkg/${SIDECAR}/%g")
+      xargs sed -i".bak" "s%github.com/kubernetes-csi/external-${SIDECAR}/%github.com/kubernetes-csi/csi-sidecars/pkg/${SIDECAR}/%g")
   fi
 
   for FILE in pkg/${SIDECAR}/cmd/csi-${SIDECAR}/*.go; do
     NEW_FILE="cmd/csi-sidecars/${SIDECAR}_$(basename ${FILE})"
     cp -v -- "${FILE}" "${NEW_FILE}"
     # Rename main()
-    sed -i "s/func main()/func ${SIDECAR}_main(ctx context.Context)/g" "${NEW_FILE}"
+    sed -i".bak" "s/func main()/func ${SIDECAR}_main(ctx context.Context)/g" "${NEW_FILE}"
     # Remove variables (mostly flags)
-    sed -i '/^var (/,/^)/d' "${NEW_FILE}"
+    sed -i".bak" '/^var (/,/^)/d' "${NEW_FILE}"
     # Pass context from main.go
-    sed -i '/ctx :=/d' "${NEW_FILE}"
-    sed -i 's/context.TODO()/ctx/g' "${NEW_FILE}"
+    sed -i".bak" '/ctx :=/d' "${NEW_FILE}"
+    sed -i".bak" 's/context.TODO()/ctx/g' "${NEW_FILE}"
 
     # Flags/logging code that must be removed
-    sed -i '/flag.Var/d' "${NEW_FILE}"
-    sed -i '/featuregate.NewFeatureGate/d' "${NEW_FILE}"
-    sed -i '/logsapi.AddFeatureGates/d' "${NEW_FILE}"
-    sed -i '/Options are:/d' "${NEW_FILE}"
-    sed -i '/logsapi.NewLoggingConfiguration/d' "${NEW_FILE}"
-    sed -i '/logsapi.AddGoFlags/d' "${NEW_FILE}"
-    sed -i '/logs.InitLogs/d' "${NEW_FILE}"
-    sed -i '/flag.Parse/d' "${NEW_FILE}"
-    sed -i '/logsapi.ValidateAndApply/,/}/d' "${NEW_FILE}"
-    sed -i '/klog.InitFlags/d' "${NEW_FILE}"
-    sed -i '/logtostderr/d' "${NEW_FILE}"
-    sed -i '/utilfeature.DefaultMutableFeatureGate/,/}/d' "${NEW_FILE}"
-    sed -i '/flag.CommandLine.AddGoFlagSet/d' "${NEW_FILE}"
+    sed -i".bak" '/flag.Var/d' "${NEW_FILE}"
+    sed -i".bak" '/featuregate.NewFeatureGate/d' "${NEW_FILE}"
+    sed -i".bak" '/logsapi.AddFeatureGates/d' "${NEW_FILE}"
+    sed -i".bak" '/Options are:/d' "${NEW_FILE}"
+    sed -i".bak" '/logsapi.NewLoggingConfiguration/d' "${NEW_FILE}"
+    sed -i".bak" '/logsapi.AddGoFlags/d' "${NEW_FILE}"
+    sed -i".bak" '/logs.InitLogs/d' "${NEW_FILE}"
+    sed -i".bak" '/flag.Parse/d' "${NEW_FILE}"
+    sed -i".bak" '/logsapi.ValidateAndApply/,/}/d' "${NEW_FILE}"
+    sed -i".bak" '/klog.InitFlags/d' "${NEW_FILE}"
+    sed -i".bak" '/logtostderr/d' "${NEW_FILE}"
+    sed -i".bak" '/utilfeature.DefaultMutableFeatureGate/,/}/d' "${NEW_FILE}"
+    sed -i".bak" '/flag.CommandLine.AddGoFlagSet/d' "${NEW_FILE}"
 
     # Dead imports
-    sed -i '/goflag/d' "${NEW_FILE}"
-    sed -i '/flag"/d' "${NEW_FILE}"
-    sed -i '/featuregate"/d' "${NEW_FILE}"
-    sed -i '/logs/d' "${NEW_FILE}"
+    sed -i".bak" '/goflag/d' "${NEW_FILE}"
+    sed -i".bak" '/flag"/d' "${NEW_FILE}"
+    sed -i".bak" '/featuregate"/d' "${NEW_FILE}"
+    sed -i".bak" '/logs/d' "${NEW_FILE}"
     if [ "${SIDECAR}" = "resizer" ]; then
-      sed -i '/strings/d' "${NEW_FILE}"
+      sed -i".bak" '/strings/d' "${NEW_FILE}"
     fi
   done
 done
