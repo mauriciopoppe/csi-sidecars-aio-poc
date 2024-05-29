@@ -26,7 +26,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	flag "github.com/spf13/pflag"
-	"sigs.k8s.io/sig-storage-lib-external-provisioner/v9/controller"
+	"sigs.k8s.io/sig-storage-lib-external-provisioner/v10/controller"
 
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	utilflag "k8s.io/component-base/cli/flag"

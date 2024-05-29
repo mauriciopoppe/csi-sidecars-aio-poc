@@ -12,8 +12,8 @@ cond_exec() {
   echo $@
 }
 
-if [[ ! $(go version) == *go1.22* ]]; then
-  echo "Install go1.22, please read the README.md"
+if [[ ! $(go version) =~ go1.2[23] ]]; then
+  echo "Install go1.22 or go1.23, please read the README.md"
   exit 1
 fi
 if ! command -v rg; then
@@ -27,9 +27,11 @@ fi
 
 mkdir -p tmp pkg cmd/csi-sidecars/ staging/src/github.com/kubernetes-csi/
 
-for SIDECAR in attacher provisioner resizer; do
+for i in attacher,master provisioner,master resizer,master; do
+  IFS=',' read SIDECAR SIDECAR_HASH <<< "${i}"
   if [[ ! -d pkg/${SIDECAR} ]]; then
-    git clone --depth 1 https://github.com/kubernetes-csi/external-${SIDECAR} pkg/${SIDECAR}
+    git clone https://github.com/kubernetes-csi/external-${SIDECAR} pkg/${SIDECAR}
+    (cd pkg/${SIDECAR} && git checkout ${SIDECAR_HASH})
 
     cat pkg/${SIDECAR}/go.mod | grep "	" | grep -v "indirect" >> tmp/gomod-require.txt
     cat pkg/${SIDECAR}/go.mod | grep "replace " >> tmp/gomod-replace.txt
@@ -85,7 +87,10 @@ for SIDECAR in attacher provisioner resizer; do
     if [ "${SIDECAR}" = "resizer" ]; then
       sed -i".bak" '/strings/d' "${NEW_FILE}"
     fi
+
+    # Remove .bak file created by sed
   done
+  ${TRASH} cmd/csi-sidecars/*.bak
 done
 
 # Create merged go.mod
@@ -165,5 +170,4 @@ EOF
 # TODO: This command doesn't work in my arm mac
 # chmod +x .cloudbuild.sh
 # docker run -v $PWD:/app -w /app debian /bin/bash -c 'apt-get -y update; apt-get -y install make curl; PULL_BASE_REF=master REGISTRY_NAME=368597081700.dkr.ecr.us-west-2.amazonaws.com/csi-sidecar-aio-poc CSI_PROW_BUILD_PLATFORMS="linux amd64 amd64" ./.cloudbuild.sh'
-
-PULL_BASE_REF=master REGISTRY_NAME=368597081700.dkr.ecr.us-west-2.amazonaws.com/csi-sidecar-aio-poc CSI_PROW_BUILD_PLATFORMS="linux amd64 amd64" ./.cloudbuild.sh
+# PULL_BASE_REF=master REGISTRY_NAME=368597081700.dkr.ecr.us-west-2.amazonaws.com/csi-sidecar-aio-poc CSI_PROW_BUILD_PLATFORMS="linux amd64 amd64" ./.cloudbuild.sh

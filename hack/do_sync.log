@@ -1,16 +1,27 @@
 + FROM_SCRATCH=false
 ++ go version
-+ [[ ! go version devel go1.22-89a457844f Mon Jul 24 18:09:22 2023 +0000 darwin/arm64 == *go1.22* ]]
++ [[ ! go version devel go1.23-c26be72d68 Tue May 28 21:41:09 2024 +0000 darwin/arm64 =~ go1.2[23] ]]
 + command -v rg
 /opt/homebrew/bin/rg
++ TRASH=trash
 + command -v trash
 /Users/mauriciopoppe/n/bin/trash
-+ mkdir -p pkg cmd/csi-sidecars/ staging/src/github.com/kubernetes-csi/
++ mkdir -p tmp pkg cmd/csi-sidecars/ staging/src/github.com/kubernetes-csi/
++ for i in attacher,master provisioner,master resizer,master
++ IFS=,
++ read SIDECAR SIDECAR_HASH
 + [[ ! -d pkg/attacher ]]
 + git clone https://github.com/kubernetes-csi/external-attacher pkg/attacher
 Cloning into 'pkg/attacher'...
-+ cp pkg/attacher/go.mod go.mod
-+ sed -i '1 s%.*%module github.com/kubernetes-csi/csi-sidecars%' go.mod
++ cd pkg/attacher
++ git checkout master
+Already on 'master'
+Your branch is up to date with 'origin/master'.
++ cat pkg/attacher/go.mod
++ grep '	'
++ grep -v indirect
++ cat pkg/attacher/go.mod
++ grep 'replace '
 + trash pkg/attacher/.git
 + trash pkg/attacher/.github
 + trash pkg/attacher/vendor
@@ -25,9 +36,216 @@ Cloning into 'pkg/attacher'...
 + trash pkg/attacher/Makefile
 + cd pkg/attacher
 + rg github.com/kubernetes-csi/external-attacher/ --files-with-matches
-+ xargs sed -i s%github.com/kubernetes-csi/external-attacher/%github.com/kubernetes-csi/csi-sidecars/pkg/attacher/%g
-+ cp pkg/attacher/cmd/csi-attacher/main.go cmd/csi-sidecars/main.go
++ xargs sed -i.bak s%github.com/kubernetes-csi/external-attacher/%github.com/kubernetes-csi/csi-sidecars/pkg/attacher/%g
++ for FILE in 'pkg/${SIDECAR}/cmd/csi-${SIDECAR}/*.go'
+++ basename pkg/attacher/cmd/csi-attacher/main.go
++ NEW_FILE=cmd/csi-sidecars/attacher_main.go
++ cp -v -- pkg/attacher/cmd/csi-attacher/main.go cmd/csi-sidecars/attacher_main.go
+pkg/attacher/cmd/csi-attacher/main.go -> cmd/csi-sidecars/attacher_main.go
++ sed -i.bak 's/func main()/func attacher_main(ctx context.Context)/g' cmd/csi-sidecars/attacher_main.go
++ sed -i.bak '/^var (/,/^)/d' cmd/csi-sidecars/attacher_main.go
++ sed -i.bak '/ctx :=/d' cmd/csi-sidecars/attacher_main.go
++ sed -i.bak 's/context.TODO()/ctx/g' cmd/csi-sidecars/attacher_main.go
++ sed -i.bak /flag.Var/d cmd/csi-sidecars/attacher_main.go
++ sed -i.bak /featuregate.NewFeatureGate/d cmd/csi-sidecars/attacher_main.go
++ sed -i.bak /logsapi.AddFeatureGates/d cmd/csi-sidecars/attacher_main.go
++ sed -i.bak '/Options are:/d' cmd/csi-sidecars/attacher_main.go
++ sed -i.bak /logsapi.NewLoggingConfiguration/d cmd/csi-sidecars/attacher_main.go
++ sed -i.bak /logsapi.AddGoFlags/d cmd/csi-sidecars/attacher_main.go
++ sed -i.bak /logs.InitLogs/d cmd/csi-sidecars/attacher_main.go
++ sed -i.bak /flag.Parse/d cmd/csi-sidecars/attacher_main.go
++ sed -i.bak '/logsapi.ValidateAndApply/,/}/d' cmd/csi-sidecars/attacher_main.go
++ sed -i.bak /klog.InitFlags/d cmd/csi-sidecars/attacher_main.go
++ sed -i.bak /logtostderr/d cmd/csi-sidecars/attacher_main.go
++ sed -i.bak '/utilfeature.DefaultMutableFeatureGate/,/}/d' cmd/csi-sidecars/attacher_main.go
++ sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/attacher_main.go
++ sed -i.bak /goflag/d cmd/csi-sidecars/attacher_main.go
++ sed -i.bak '/flag"/d' cmd/csi-sidecars/attacher_main.go
++ sed -i.bak '/featuregate"/d' cmd/csi-sidecars/attacher_main.go
++ sed -i.bak /logs/d cmd/csi-sidecars/attacher_main.go
++ '[' attacher = resizer ']'
++ trash cmd/csi-sidecars/attacher_main.go.bak
++ for i in attacher,master provisioner,master resizer,master
++ IFS=,
++ read SIDECAR SIDECAR_HASH
++ [[ ! -d pkg/provisioner ]]
++ git clone https://github.com/kubernetes-csi/external-provisioner pkg/provisioner
+Cloning into 'pkg/provisioner'...
++ cd pkg/provisioner
++ git checkout master
+Already on 'master'
+Your branch is up to date with 'origin/master'.
++ cat pkg/provisioner/go.mod
++ grep '	'
++ grep -v indirect
++ cat pkg/provisioner/go.mod
++ grep 'replace '
++ trash pkg/provisioner/.git
++ trash pkg/provisioner/.github
++ trash pkg/provisioner/vendor
++ trash pkg/provisioner/release-tools
++ trash pkg/provisioner/go.mod
++ trash pkg/provisioner/go.sum
++ trash pkg/provisioner/Dockerfile
++ trash pkg/provisioner/.cloudbuild.sh
++ trash pkg/provisioner/cloudbuild.yaml
++ trash pkg/provisioner/.prow.sh
++ trash pkg/provisioner/OWNER_ALIASES
++ trash pkg/provisioner/Makefile
++ cd pkg/provisioner
++ rg github.com/kubernetes-csi/external-provisioner/ --files-with-matches
++ xargs sed -i.bak s%github.com/kubernetes-csi/external-provisioner/%github.com/kubernetes-csi/csi-sidecars/pkg/provisioner/%g
++ for FILE in 'pkg/${SIDECAR}/cmd/csi-${SIDECAR}/*.go'
+++ basename pkg/provisioner/cmd/csi-provisioner/csi-provisioner.go
++ NEW_FILE=cmd/csi-sidecars/provisioner_csi-provisioner.go
++ cp -v -- pkg/provisioner/cmd/csi-provisioner/csi-provisioner.go cmd/csi-sidecars/provisioner_csi-provisioner.go
+pkg/provisioner/cmd/csi-provisioner/csi-provisioner.go -> cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak 's/func main()/func provisioner_main(ctx context.Context)/g' cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak '/^var (/,/^)/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak '/ctx :=/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak 's/context.TODO()/ctx/g' cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak /flag.Var/d cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak /featuregate.NewFeatureGate/d cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak /logsapi.AddFeatureGates/d cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak '/Options are:/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak /logsapi.NewLoggingConfiguration/d cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak /logsapi.AddGoFlags/d cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak /logs.InitLogs/d cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak /flag.Parse/d cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak '/logsapi.ValidateAndApply/,/}/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak /klog.InitFlags/d cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak /logtostderr/d cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak '/utilfeature.DefaultMutableFeatureGate/,/}/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak /goflag/d cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak '/flag"/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak '/featuregate"/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak /logs/d cmd/csi-sidecars/provisioner_csi-provisioner.go
++ '[' provisioner = resizer ']'
++ for FILE in 'pkg/${SIDECAR}/cmd/csi-${SIDECAR}/*.go'
+++ basename pkg/provisioner/cmd/csi-provisioner/util.go
++ NEW_FILE=cmd/csi-sidecars/provisioner_util.go
++ cp -v -- pkg/provisioner/cmd/csi-provisioner/util.go cmd/csi-sidecars/provisioner_util.go
+pkg/provisioner/cmd/csi-provisioner/util.go -> cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak 's/func main()/func provisioner_main(ctx context.Context)/g' cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak '/^var (/,/^)/d' cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak '/ctx :=/d' cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak 's/context.TODO()/ctx/g' cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak /flag.Var/d cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak /featuregate.NewFeatureGate/d cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak /logsapi.AddFeatureGates/d cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak '/Options are:/d' cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak /logsapi.NewLoggingConfiguration/d cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak /logsapi.AddGoFlags/d cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak /logs.InitLogs/d cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak /flag.Parse/d cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak '/logsapi.ValidateAndApply/,/}/d' cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak /klog.InitFlags/d cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak /logtostderr/d cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak '/utilfeature.DefaultMutableFeatureGate/,/}/d' cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak /goflag/d cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak '/flag"/d' cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak '/featuregate"/d' cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak /logs/d cmd/csi-sidecars/provisioner_util.go
++ '[' provisioner = resizer ']'
++ for FILE in 'pkg/${SIDECAR}/cmd/csi-${SIDECAR}/*.go'
+++ basename pkg/provisioner/cmd/csi-provisioner/util_test.go
++ NEW_FILE=cmd/csi-sidecars/provisioner_util_test.go
++ cp -v -- pkg/provisioner/cmd/csi-provisioner/util_test.go cmd/csi-sidecars/provisioner_util_test.go
+pkg/provisioner/cmd/csi-provisioner/util_test.go -> cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak 's/func main()/func provisioner_main(ctx context.Context)/g' cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak '/^var (/,/^)/d' cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak '/ctx :=/d' cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak 's/context.TODO()/ctx/g' cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak /flag.Var/d cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak /featuregate.NewFeatureGate/d cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak /logsapi.AddFeatureGates/d cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak '/Options are:/d' cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak /logsapi.NewLoggingConfiguration/d cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak /logsapi.AddGoFlags/d cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak /logs.InitLogs/d cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak /flag.Parse/d cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak '/logsapi.ValidateAndApply/,/}/d' cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak /klog.InitFlags/d cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak /logtostderr/d cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak '/utilfeature.DefaultMutableFeatureGate/,/}/d' cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak /goflag/d cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak '/flag"/d' cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak '/featuregate"/d' cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak /logs/d cmd/csi-sidecars/provisioner_util_test.go
++ '[' provisioner = resizer ']'
++ trash cmd/csi-sidecars/provisioner_csi-provisioner.go.bak cmd/csi-sidecars/provisioner_util.go.bak cmd/csi-sidecars/provisioner_util_test.go.bak
++ for i in attacher,master provisioner,master resizer,master
++ IFS=,
++ read SIDECAR SIDECAR_HASH
++ [[ ! -d pkg/resizer ]]
++ git clone https://github.com/kubernetes-csi/external-resizer pkg/resizer
+Cloning into 'pkg/resizer'...
++ cd pkg/resizer
++ git checkout master
+Already on 'master'
+Your branch is up to date with 'origin/master'.
++ cat pkg/resizer/go.mod
++ grep '	'
++ grep -v indirect
++ cat pkg/resizer/go.mod
++ grep 'replace '
++ trash pkg/resizer/.git
++ trash pkg/resizer/.github
++ trash pkg/resizer/vendor
++ trash pkg/resizer/release-tools
++ trash pkg/resizer/go.mod
++ trash pkg/resizer/go.sum
++ trash pkg/resizer/Dockerfile
++ trash pkg/resizer/.cloudbuild.sh
++ trash pkg/resizer/cloudbuild.yaml
++ trash pkg/resizer/.prow.sh
++ trash pkg/resizer/OWNER_ALIASES
++ trash pkg/resizer/Makefile
++ cd pkg/resizer
++ rg github.com/kubernetes-csi/external-resizer/ --files-with-matches
++ xargs sed -i.bak s%github.com/kubernetes-csi/external-resizer/%github.com/kubernetes-csi/csi-sidecars/pkg/resizer/%g
++ for FILE in 'pkg/${SIDECAR}/cmd/csi-${SIDECAR}/*.go'
+++ basename pkg/resizer/cmd/csi-resizer/main.go
++ NEW_FILE=cmd/csi-sidecars/resizer_main.go
++ cp -v -- pkg/resizer/cmd/csi-resizer/main.go cmd/csi-sidecars/resizer_main.go
+pkg/resizer/cmd/csi-resizer/main.go -> cmd/csi-sidecars/resizer_main.go
++ sed -i.bak 's/func main()/func resizer_main(ctx context.Context)/g' cmd/csi-sidecars/resizer_main.go
++ sed -i.bak '/^var (/,/^)/d' cmd/csi-sidecars/resizer_main.go
++ sed -i.bak '/ctx :=/d' cmd/csi-sidecars/resizer_main.go
++ sed -i.bak 's/context.TODO()/ctx/g' cmd/csi-sidecars/resizer_main.go
++ sed -i.bak /flag.Var/d cmd/csi-sidecars/resizer_main.go
++ sed -i.bak /featuregate.NewFeatureGate/d cmd/csi-sidecars/resizer_main.go
++ sed -i.bak /logsapi.AddFeatureGates/d cmd/csi-sidecars/resizer_main.go
++ sed -i.bak '/Options are:/d' cmd/csi-sidecars/resizer_main.go
++ sed -i.bak /logsapi.NewLoggingConfiguration/d cmd/csi-sidecars/resizer_main.go
++ sed -i.bak /logsapi.AddGoFlags/d cmd/csi-sidecars/resizer_main.go
++ sed -i.bak /logs.InitLogs/d cmd/csi-sidecars/resizer_main.go
++ sed -i.bak /flag.Parse/d cmd/csi-sidecars/resizer_main.go
++ sed -i.bak '/logsapi.ValidateAndApply/,/}/d' cmd/csi-sidecars/resizer_main.go
++ sed -i.bak /klog.InitFlags/d cmd/csi-sidecars/resizer_main.go
++ sed -i.bak /logtostderr/d cmd/csi-sidecars/resizer_main.go
++ sed -i.bak '/utilfeature.DefaultMutableFeatureGate/,/}/d' cmd/csi-sidecars/resizer_main.go
++ sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/resizer_main.go
++ sed -i.bak /goflag/d cmd/csi-sidecars/resizer_main.go
++ sed -i.bak '/flag"/d' cmd/csi-sidecars/resizer_main.go
++ sed -i.bak '/featuregate"/d' cmd/csi-sidecars/resizer_main.go
++ sed -i.bak /logs/d cmd/csi-sidecars/resizer_main.go
++ '[' resizer = resizer ']'
++ sed -i.bak /strings/d cmd/csi-sidecars/resizer_main.go
++ trash cmd/csi-sidecars/resizer_main.go.bak
++ cat
++ cat tmp/gomod-require.txt
++ sort
++ uniq
++ cat
++ cat tmp/gomod-replace.txt
++ sort
++ uniq
 + go mod tidy
++ cp hack/main.go cmd/csi-sidecars/main.go
 + csi_release_tools=release-tools
 + [[ ! -d release-tools ]]
 + git clone https://github.com/kubernetes-csi/csi-release-tools release-tools
@@ -42,9 +260,6 @@ Cloning into 'staging/src/github.com/kubernetes-csi/csi-lib-utils'...
 + trash staging/src/github.com/kubernetes-csi/csi-lib-utils/.github
 + trash staging/src/github.com/kubernetes-csi/csi-lib-utils/vendor
 + trash staging/src/github.com/kubernetes-csi/csi-lib-utils/release-tools
-+ cat
-+ grep -q '// Connect to CSI' cmd/csi-sidecars/main.go
-+ sed -i 's%// Connect to CSI.%// Override\!\nconnection.HelloWorld()%g' cmd/csi-sidecars/main.go
 + grep -q ./staging/src/github.com/kubernetes-csi/csi-lib-utils go.mod
 + echo 'replace github.com/kubernetes-csi/csi-lib-utils => ./staging/src/github.com/kubernetes-csi/csi-lib-utils'
 + trash go.work go.sum
@@ -52,15 +267,14 @@ Cloning into 'staging/src/github.com/kubernetes-csi/csi-lib-utils'...
 + go work use ./staging/src/github.com/kubernetes-csi/csi-lib-utils
 + go mod tidy
 + go work vendor
-+ grep -q HelloWorld cmd/csi-sidecars/main.go
 + make build
 ./release-tools/verify-go-version.sh "go"
 
 ======================================================
                   WARNING
 
-  This projects is tested with Go v1.20.
-  Your current Go version is v1.22.
+  This projects is tested with Go v1.22.3.
+  Your current Go version is v1.23.
   This may or may not be close enough.
 
   In particular test-gofmt and test-vendor
@@ -74,20 +288,20 @@ mkdir -p bin
 # we don't need to build it again, this is done to avoid building
 # the windows binary multiple times (see the default value of $BUILD_PLATFORMS)
 export os_arch_seen="" && echo '' | tr ';' '\n' | while read -r os arch buildx_platform suffix base_image addon_image; do \
-	os_arch_seen_pre=${os_arch_seen%%$os-$arch-$buildx_platform*}; \
-	if ! [ ${#os_arch_seen_pre} = ${#os_arch_seen} ]; then \
-		continue; \
-	fi; \
-	if ! (set -x; cd ./cmd/"csi-sidecars" && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build  -a -ldflags ' -X main.version=c969eca1931e0cd3f1a5b53461763e0c3428fa6b -extldflags "-static"' -o "/Users/mauriciopoppe/go/src/github.com/kubernetes-csi/csi-sidecars/bin/"csi-sidecars"$suffix" .); then \
-		echo "Building "csi-sidecars" for GOOS=$os GOARCH=$arch failed, see error(s) above."; \
-		exit 1; \
-	fi; \
-	os_arch_seen+=";$os-$arch-$buildx_platform"; \
-done
+		os_arch_seen_pre=${os_arch_seen%%$os-$arch-$buildx_platform*}; \
+		if ! [ ${#os_arch_seen_pre} = ${#os_arch_seen} ]; then \
+			continue; \
+		fi; \
+		if ! (set -x; cd ./cmd/"csi-sidecars" && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build  -a -ldflags ' -X main.version=6215adf5b1bef3c643f2ea90ec4ddd153ca55116 -extldflags "-static"' -o "/Users/mauriciopoppe/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/"csi-sidecars"$suffix" .); then \
+			echo "Building "csi-sidecars" for GOOS=$os GOARCH=$arch failed, see error(s) above."; \
+			exit 1; \
+		fi; \
+		os_arch_seen+=";$os-$arch-$buildx_platform"; \
+	done
 + cd ./cmd/csi-sidecars
 + CGO_ENABLED=0
 + GOOS=
 + GOARCH=
-+ go build -a -ldflags ' -X main.version=c969eca1931e0cd3f1a5b53461763e0c3428fa6b -extldflags "-static"' -o /Users/mauriciopoppe/go/src/github.com/kubernetes-csi/csi-sidecars/bin/csi-sidecars .
++ go build -a -ldflags ' -X main.version=6215adf5b1bef3c643f2ea90ec4ddd153ca55116 -extldflags "-static"' -o /Users/mauriciopoppe/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars .
 + cat
 + cat
