@@ -39,6 +39,10 @@
 
 RELEASE_TOOLS_ROOT="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
 REPO_DIR="$(pwd)"
+OS_ARCH="linux"
+if [[ $(uname) == "Darwin" ]]; then
+  OS_ARCH="darwin"
+fi
 
 # Sets the default value for a variable if not set already and logs the value.
 # Any variable set this way is usually something that a repo's .prow.sh
@@ -446,7 +450,7 @@ install_kind () {
     if kind --version 2>/dev/null | grep -q " ${CSI_PROW_KIND_VERSION}$"; then
         return
     fi
-    if run curl --fail --location -o "${CSI_PROW_WORK}/bin/kind" "https://github.com/kubernetes-sigs/kind/releases/download/${CSI_PROW_KIND_VERSION}/kind-linux-amd64"; then
+    if run curl --fail --location -o "${CSI_PROW_WORK}/bin/kind" "https://github.com/kubernetes-sigs/kind/releases/download/${CSI_PROW_KIND_VERSION}/kind-${OS_ARCH}-amd64"; then
         chmod u+x "${CSI_PROW_WORK}/bin/kind"
     else
         git_checkout https://github.com/kubernetes-sigs/kind "${GOPATH}/src/sigs.k8s.io/kind" "${CSI_PROW_KIND_VERSION}" --depth=1 &&
