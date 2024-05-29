@@ -16,6 +16,5 @@ jobs:
       with:
         go-version: ${{ matrix.go }}
     - run: go version
-    - run: sudo apt-get update && sudo apt-get install -y ripgrep
     - run: ./hack/do_cleanup.sh
     - run: ./hack/do_sync.sh
