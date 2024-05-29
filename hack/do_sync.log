@@ -1,6 +1,6 @@
 + FROM_SCRATCH=false
 ++ go version
-+ [[ ! go version devel go1.23-c26be72d68 Tue May 28 21:41:09 2024 +0000 darwin/arm64 =~ go1.2[23] ]]
++ [[ ! go version go1.22.3 darwin/arm64 =~ go1.22.3 ]]
 + TRASH=trash
 + command -v trash
 /Users/mauriciopoppe/n/bin/trash
@@ -351,7 +351,7 @@ Cloning into 'staging/src/github.com/kubernetes-csi/csi-lib-utils'...
                   WARNING
 
   This projects is tested with Go v1.22.3.
-  Your current Go version is v1.23.
+  Your current Go version is v1.22.
   This may or may not be close enough.
 
   In particular test-gofmt and test-vendor
@@ -369,7 +369,7 @@ export os_arch_seen="" && echo '' | tr ';' '\n' | while read -r os arch buildx_p
 		if ! [ ${#os_arch_seen_pre} = ${#os_arch_seen} ]; then \
 			continue; \
 		fi; \
-		if ! (set -x; cd ./cmd/"csi-sidecars" && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build  -a -ldflags ' -X main.version=e0dffb5b9301376fb2c2ef49a5adbcaff72c6d40 -extldflags "-static"' -o "/Users/mauriciopoppe/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/"csi-sidecars"$suffix" .); then \
+		if ! (set -x; cd ./cmd/"csi-sidecars" && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build  -a -ldflags ' -X main.version=dd1a3e583140399704654e02514122718da2a19f -extldflags "-static"' -o "/Users/mauriciopoppe/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/"csi-sidecars"$suffix" .); then \
 			echo "Building "csi-sidecars" for GOOS=$os GOARCH=$arch failed, see error(s) above."; \
 			exit 1; \
 		fi; \
@@ -379,6 +379,6 @@ export os_arch_seen="" && echo '' | tr ';' '\n' | while read -r os arch buildx_p
 + CGO_ENABLED=0
 + GOOS=
 + GOARCH=
-+ go build -a -ldflags ' -X main.version=e0dffb5b9301376fb2c2ef49a5adbcaff72c6d40 -extldflags "-static"' -o /Users/mauriciopoppe/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars .
++ go build -a -ldflags ' -X main.version=dd1a3e583140399704654e02514122718da2a19f -extldflags "-static"' -o /Users/mauriciopoppe/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars .
 + cat
 + cat

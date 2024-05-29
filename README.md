@@ -6,13 +6,7 @@ See https://docs.google.com/document/d/1z7OU79YBnvlaDgcvmtYVnUAYFX1w9lyrgiPTV7RX
 
 Requirements:
 
-- go devel 1.22
-
-```bash
-go install golang.org/dl/gotip@latest
-gotip download 495801
-export PATH="$(gotip env GOROOT)/bin:$PATH"
-```
+- go 1.22.3
 
 ### Local Runs
 

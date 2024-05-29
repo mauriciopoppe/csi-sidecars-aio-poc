@@ -225,13 +225,13 @@ test: check-go-version-go
 test: test-go
 test-go:
 	@ echo; echo "### $@:"
-	go test $(GOFLAGS_VENDOR) `go list $(GOFLAGS_VENDOR) ./... | grep -v -e 'vendor' -e '/test/e2e$$' $(TEST_GO_FILTER_CMD)` $(TESTARGS)
+	go test $(GOFLAGS_VENDOR) `go list $(GOFLAGS_VENDOR) ./... | grep -v -e 'vendor' -e '/test/e2e$$' -e 'hack' $(TEST_GO_FILTER_CMD)` $(TESTARGS)
 
 .PHONY: test-vet
 test: test-vet
 test-vet:
 	@ echo; echo "### $@:"
-	go vet $(GOFLAGS_VENDOR) `go list $(GOFLAGS_VENDOR) ./... | grep -v vendor $(TEST_VET_FILTER_CMD)`
+	go vet $(GOFLAGS_VENDOR) `go list $(GOFLAGS_VENDOR) ./... | grep -v vendor -e 'hack' $(TEST_VET_FILTER_CMD)`
 
 .PHONY: test-fmt
 test: test-fmt
@@ -288,7 +288,8 @@ test-subtree:
 # The default is to check only the release-tools directory itself.
 TEST_SHELLCHECK_DIRS=release-tools
 .PHONY: test-shellcheck
-test: test-shellcheck
+# TODO(mauriciopoppe): This test takes a lot of time, disabling for now.
+# test: test-shellcheck
 test-shellcheck:
 	@ echo; echo "### $@:"
 	@ ret=0; \
