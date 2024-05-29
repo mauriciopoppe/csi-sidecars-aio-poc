@@ -14,9 +14,6 @@ gotip download 495801
 export PATH="$(gotip env GOROOT)/bin:$PATH"
 ```
 
-- https://github.com/BurntSushi/ripgrep
-- https://www.npmjs.com/package/trash
-
 ### Local Runs
 
 After cloning the repo, run the following commands to start from scratch:
