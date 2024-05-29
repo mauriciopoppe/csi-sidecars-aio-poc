@@ -58,6 +58,7 @@ var (
 	kubeAPIQPS                  = flag.Float32("kube-api-qps", 5, "QPS to use while communicating with the kubernetes apiserver. Defaults to 5.0.")
 	kubeAPIBurst                = flag.Int("kube-api-burst", 10, "Burst to use while communicating with the kubernetes apiserver. Defaults to 10.")
 	defaultFSType               = flag.String("attacher-default-fstype", "", "The default filesystem type of the volume to use.")
+	controllers                 = flag.String("controllers", "", "A comma-separated list of controllers to enable. The possible values are: [resizer,attacher,provisioner]")
 
 	// "Shared" but probably broken if you actually try to use any of them
 	httpEndpoint   = flag.String("http-endpoint", "", "The TCP network address where the HTTP server for diagnostics, including metrics and leader election health check, will listen (example: `:8080`). The default is empty string, which means the server is disabled. Only one of `--metrics-address` and `--http-endpoint` can be set.")
@@ -128,19 +129,30 @@ func main() {
 
 	errs, ctx := errgroup.WithContext(context.Background())
 
+	controllersToEnable := map[string]bool{}
+	for _, ctrl := range strings.Split(*controllers, ",") {
+		controllersToEnable[ctrl] = true
+	}
+
 	// TODO: Get main from each sidecar to return an error so we can handle it here
-	errs.Go(func() error {
-		attacher_main(ctx)
-		return fmt.Errorf("Attacher stopped")
-	})
-	errs.Go(func() error {
-		provisioner_main(ctx)
-		return fmt.Errorf("Provisioner stopped")
-	})
-	errs.Go(func() error {
-		resizer_main(ctx)
-		return fmt.Errorf("Resizer stopped")
-	})
+	if _, ok := controllersToEnable["attacher"]; ok {
+		errs.Go(func() error {
+			attacher_main(ctx)
+			return fmt.Errorf("Attacher stopped")
+		})
+	}
+	if _, ok := controllersToEnable["provisioner"]; ok {
+		errs.Go(func() error {
+			provisioner_main(ctx)
+			return fmt.Errorf("Provisioner stopped")
+		})
+	}
+	if _, ok := controllersToEnable["resizer"]; ok {
+		errs.Go(func() error {
+			resizer_main(ctx)
+			return fmt.Errorf("Resizer stopped")
+		})
+	}
 
 	if err := errs.Wait(); err != nil {
 		panic(err)

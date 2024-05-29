@@ -16,10 +16,6 @@ if [[ ! $(go version) =~ go1.2[23] ]]; then
   echo "Install go1.22 or go1.23, please read the README.md"
   exit 1
 fi
-if ! command -v rg; then
-  echo "Install ripgrep"
-  exit 1
-fi
 TRASH="trash"
 if ! command -v trash; then
   TRASH="rm -rf"
@@ -49,7 +45,9 @@ for i in attacher,master provisioner,master resizer,master; do
     ${TRASH} pkg/${SIDECAR}/OWNER_ALIASES
     ${TRASH} pkg/${SIDECAR}/Makefile
 
-    (cd pkg/${SIDECAR}; rg "github.com/kubernetes-csi/external-${SIDECAR}/" --files-with-matches | \
+    (cd pkg/${SIDECAR}; find . -type f -exec grep -q "github.com/kubernetes-csi/external-${SIDECAR}/" --files-with-matches {} \; -print)
+
+    (cd pkg/${SIDECAR}; find . -type f -exec grep -q "github.com/kubernetes-csi/external-${SIDECAR}/" --files-with-matches {} \; -print | \
       xargs sed -i".bak" "s%github.com/kubernetes-csi/external-${SIDECAR}/%github.com/kubernetes-csi/csi-sidecars/pkg/${SIDECAR}/%g")
   fi
 
@@ -88,9 +86,7 @@ for i in attacher,master provisioner,master resizer,master; do
       sed -i".bak" '/strings/d' "${NEW_FILE}"
     fi
 
-    # Remove .bak file created by sed
   done
-  ${TRASH} cmd/csi-sidecars/*.bak
 done
 
 # Create merged go.mod
@@ -134,9 +130,6 @@ if [[ ! -d ${csi_lib_utils} ]]; then
   ${TRASH} ${csi_lib_utils}/.github
   ${TRASH} ${csi_lib_utils}/vendor
   ${TRASH} ${csi_lib_utils}/release-tools
-
-  # (cd $csi_lib_utils; rg "github.com/kubernetes-csi/csi-lib-utils" --files-with-matches | \
-    # xargs sed -i "s%github.com/kubernetes-csi/csi-lib-utils%github.com/kubernetes-csi/csi-sidecars/${csi_lib_utils}%g")
 
   if ! grep -q "./staging/src/github.com/kubernetes-csi/csi-lib-utils" go.mod; then
     echo "replace github.com/kubernetes-csi/csi-lib-utils => ./staging/src/github.com/kubernetes-csi/csi-lib-utils" >> go.mod
