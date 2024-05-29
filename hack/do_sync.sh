@@ -105,15 +105,8 @@ EOF
 cat tmp/gomod-replace.txt | sort | uniq >> go.mod
 go mod tidy
 
-# Copy our main.go in
+# Use our customized cmd/main.go
 cp hack/main.go cmd/csi-sidecars/main.go
-
-csi_release_tools=release-tools
-if [[ ! -d ${csi_release_tools} ]]; then
-  git clone https://github.com/kubernetes-csi/csi-release-tools ${csi_release_tools}
-
-  ${TRASH} ${csi_release_tools}/.git
-fi
 
 cat <<EOF >Makefile
 CMDS="csi-sidecars"
