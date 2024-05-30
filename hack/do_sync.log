@@ -343,6 +343,10 @@ Cloning into 'staging/src/github.com/kubernetes-csi/csi-lib-utils'...
 + go work init .
 + go work use ./staging/src/github.com/kubernetes-csi/csi-lib-utils
 + go mod tidy
+go: downloading go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.46.0
+go: downloading go.opentelemetry.io/otel/trace v1.20.0
+go: downloading go.opentelemetry.io/otel v1.20.0
+go: downloading go.opentelemetry.io/otel/metric v1.20.0
 + go work vendor
 + make build
 ./release-tools/verify-go-version.sh "go"
@@ -369,7 +373,7 @@ export os_arch_seen="" && echo '' | tr ';' '\n' | while read -r os arch buildx_p
 		if ! [ ${#os_arch_seen_pre} = ${#os_arch_seen} ]; then \
 			continue; \
 		fi; \
-		if ! (set -x; cd ./cmd/"csi-sidecars" && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build  -a -ldflags ' -X main.version=dd1a3e583140399704654e02514122718da2a19f -extldflags "-static"' -o "/Users/mauriciopoppe/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/"csi-sidecars"$suffix" .); then \
+		if ! (set -x; cd ./cmd/"csi-sidecars" && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build  -a -ldflags ' -X main.version=7b6d7645e4f4f0d24ca607ddc4caeb61266617a6 -extldflags "-static"' -o "/Users/mauriciopoppe/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/"csi-sidecars"$suffix" .); then \
 			echo "Building "csi-sidecars" for GOOS=$os GOARCH=$arch failed, see error(s) above."; \
 			exit 1; \
 		fi; \
@@ -379,6 +383,6 @@ export os_arch_seen="" && echo '' | tr ';' '\n' | while read -r os arch buildx_p
 + CGO_ENABLED=0
 + GOOS=
 + GOARCH=
-+ go build -a -ldflags ' -X main.version=dd1a3e583140399704654e02514122718da2a19f -extldflags "-static"' -o /Users/mauriciopoppe/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars .
++ go build -a -ldflags ' -X main.version=7b6d7645e4f4f0d24ca607ddc4caeb61266617a6 -extldflags "-static"' -o /Users/mauriciopoppe/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars .
 + cat
 + cat

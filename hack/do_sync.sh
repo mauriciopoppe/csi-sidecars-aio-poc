@@ -109,7 +109,7 @@ go mod tidy
 cp hack/main.go cmd/csi-sidecars/main.go
 
 cat <<EOF >Makefile
-CMDS="csi-sidecars"
+CMDS=csi-sidecars
 all: build
 
 include release-tools/build.make
