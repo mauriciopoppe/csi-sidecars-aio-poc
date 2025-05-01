@@ -6,7 +6,7 @@ See https://docs.google.com/document/d/1z7OU79YBnvlaDgcvmtYVnUAYFX1w9lyrgiPTV7RX
 
 Requirements:
 
-- go 1.22.3
+- go 1.23.1
 
 ### Local Runs
 

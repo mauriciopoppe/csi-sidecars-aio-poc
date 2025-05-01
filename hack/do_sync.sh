@@ -12,8 +12,8 @@ cond_exec() {
   echo $@
 }
 
-if [[ ! $(go version) =~ go1.22.3 ]]; then
-  echo "Install go1.22.3, please read the README.md"
+if [[ ! $(go version) =~ go1.23.1 ]]; then
+  echo "Install go1.23.1, please read the README.md"
   exit 1
 fi
 TRASH="trash"
@@ -30,7 +30,7 @@ for i in attacher,master provisioner,master resizer,master; do
     (cd pkg/${SIDECAR} && git checkout ${SIDECAR_HASH})
 
     cat pkg/${SIDECAR}/go.mod | grep "	" | grep -v "indirect" >> tmp/gomod-require.txt
-    cat pkg/${SIDECAR}/go.mod | grep "replace " >> tmp/gomod-replace.txt
+    cat pkg/${SIDECAR}/go.mod | { grep "replace " || [[ $? == 1 ]] } >> tmp/gomod-replace.txt
 
     ${TRASH} pkg/${SIDECAR}/.git
     ${TRASH} pkg/${SIDECAR}/.github
@@ -48,7 +48,7 @@ for i in attacher,master provisioner,master resizer,master; do
     (cd pkg/${SIDECAR}; find . -type f -exec grep -q "github.com/kubernetes-csi/external-${SIDECAR}/" --files-with-matches {} \; -print)
 
     (cd pkg/${SIDECAR}; find . -type f -exec grep -q "github.com/kubernetes-csi/external-${SIDECAR}/" --files-with-matches {} \; -print | \
-      xargs sed -i".bak" "s%github.com/kubernetes-csi/external-${SIDECAR}/%github.com/kubernetes-csi/csi-sidecars/pkg/${SIDECAR}/%g")
+	    xargs sed -E -i".bak" "s%github.com/kubernetes-csi/external-${SIDECAR}/(v[0-9]+/)?%github.com/kubernetes-csi/csi-sidecars/pkg/${SIDECAR}/%g")
   fi
 
   for FILE in pkg/${SIDECAR}/cmd/csi-${SIDECAR}/*.go; do
@@ -93,7 +93,7 @@ done
 cat <<EOF >go.mod
 module github.com/kubernetes-csi/csi-sidecars
 
-go 1.21
+go 1.23.1
 
 require (
 EOF

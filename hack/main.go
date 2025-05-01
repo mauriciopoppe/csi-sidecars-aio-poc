@@ -26,7 +26,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	flag "github.com/spf13/pflag"
-	"sigs.k8s.io/sig-storage-lib-external-provisioner/v10/controller"
+	"sigs.k8s.io/sig-storage-lib-external-provisioner/v11/controller"
 
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	utilflag "k8s.io/component-base/cli/flag"
@@ -93,8 +93,9 @@ var (
 	preventVolumeModeConversion    = flag.Bool("provisioner-prevent-volume-mode-conversion", true, "Prevents an unauthorised user from modifying the volume mode when creating a PVC from an existing VolumeSnapshot.")
 	provisionController            *controller.ProvisionController
 
-	// Resizier specific
+	// Resizer specific
 	handleVolumeInUseError = flag.Bool("resizer-handle-volume-inuse-error", true, "Flag to turn on/off capability to handle volume in use error in resizer controller. Defaults to true if not set.")
+	extraModifyMetadata = flag.Bool("resizer-extra-modify-metadata", false, "If set, add pv/pvc metadata to plugin modify requests as parameters.")
 
 	featureGates map[string]bool
 	version      = "unknown"
