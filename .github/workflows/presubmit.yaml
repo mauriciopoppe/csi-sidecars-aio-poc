@@ -5,16 +5,36 @@ on:
   pull_request:
   workflow_dispatch:
 jobs:
-  presubmit:
+  build:
     runs-on: [ubuntu-latest]
     strategy:
       matrix:
-        go: ["1.23.1"]
+        go: ["1.24.3"]
     steps:
     - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
     - uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go }}
+    - run: |
+        echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
     - run: go version
     - run: ./hack/do_cleanup.sh
     - run: ./hack/do_sync.sh
+
+  e2e-hostpath:
+    runs-on: [ubuntu-latest]
+    strategy:
+      matrix:
+        go: ["1.24.3"]
+    steps:
+    - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+    - uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go }}
+    - run: |
+        echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
+    - run: go version
+    - run: ./hack/do_cleanup.sh
+    - run: ./hack/do_sync.sh
+    - run: ./.prow.sh
+    - run:  grep "Ginkgo ran" -B 4 .prow.sh.log
