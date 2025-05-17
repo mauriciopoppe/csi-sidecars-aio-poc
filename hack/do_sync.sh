@@ -12,8 +12,8 @@ cond_exec() {
   echo $@
 }
 
-if [[ ! $(go version) =~ go1.23.1 ]]; then
-  echo "Install go1.23.1, please read the README.md"
+if [[ ! $(go version) =~ go1.24 ]]; then
+  echo "Install go1.24, please read the README.md"
   exit 1
 fi
 TRASH="trash"

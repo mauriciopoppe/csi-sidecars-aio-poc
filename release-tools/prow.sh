@@ -43,6 +43,16 @@ OS_ARCH="linux"
 if [[ $(uname) == "Darwin" ]]; then
   OS_ARCH="darwin"
 fi
+HW_ARCH=$(uname -m)
+if [[ "${HW_ARCH}" == "aarch64" ]]; then
+  HW_ARCH="arm64"
+elif [[ "${HW_ARCH}" == "x86_64" ]]; then
+  HW_ARCH="amd64"
+else
+  echo "Unsupported hardware arch $HW_ARCH"
+  exit 1
+fi
+
 
 # Sets the default value for a variable if not set already and logs the value.
 # Any variable set this way is usually something that a repo's .prow.sh
@@ -148,7 +158,7 @@ kind_version_default () {
         latest|master)
             echo main;;
         *)
-            echo v0.14.0;;
+            echo v0.25.0;;
     esac
 }
 
@@ -159,12 +169,13 @@ configvar CSI_PROW_KIND_VERSION "$(kind_version_default)" "kind"
 
 # kind images to use. Must match the kind version.
 # The release notes of each kind release list the supported images.
-configvar CSI_PROW_KIND_IMAGES "kindest/node:v1.30.0@sha256:047357ac0cfea04663786a612ba1eaba9702bef25227a794b52890dd8bcd692e
-kindest/node:v1.29.4@sha256:3abb816a5b1061fb15c6e9e60856ec40d56b7b52bcea5f5f1350bc6e2320b6f8
-kindest/node:v1.28.9@sha256:dca54bc6a6079dd34699d53d7d4ffa2e853e46a20cd12d619a09207e35300bd0
-kindest/node:v1.27.13@sha256:17439fa5b32290e3ead39ead1250dca1d822d94a10d26f1981756cd51b24b9d8
-kindest/node:v1.26.15@sha256:84333e26cae1d70361bb7339efb568df1871419f2019c80f9a12b7e2d485fe19
-kindest/node:v1.25.16@sha256:5da57dfc290ac3599e775e63b8b6c49c0c85d3fec771cd7d55b45fae14b38d3b" "kind images"
+configvar CSI_PROW_KIND_IMAGES "kindest/node:v1.32.0@sha256:2458b423d635d7b01637cac2d6de7e1c1dca1148a2ba2e90975e214ca849e7cb
+kindest/node:v1.31.2@sha256:18fbefc20a7113353c7b75b5c869d7145a6abd6269154825872dc59c1329912e
+kindest/node:v1.30.6@sha256:b6d08db72079ba5ae1f4a88a09025c0a904af3b52387643c285442afb05ab994
+kindest/node:v1.29.10@sha256:3b2d8c31753e6c8069d4fc4517264cd20e86fd36220671fb7d0a5855103aa84b
+kindest/node:v1.28.15@sha256:a7c05c7ae043a0b8c818f5a06188bc2c4098f6cb59ca7d1856df00375d839251
+kindest/node:v1.27.16@sha256:2d21a61643eafc439905e18705b8186f3296384750a835ad7a005dceb9546d20
+kindest/node:v1.26.15@sha256:c79602a44b4056d7e48dc20f7504350f1e87530fe953428b792def00bc1076dd" "kind images"
 
 # By default, this script tests sidecars with the CSI hostpath driver,
 # using the install_csi_driver function. That function depends on
@@ -437,7 +448,7 @@ run_with_go () {
         run "$@"
     else
         if ! [ -d "${CSI_PROW_WORK}/go-$version" ];  then
-            run curl --fail --location "https://dl.google.com/go/go$version.linux-amd64.tar.gz" | tar -C "${CSI_PROW_WORK}" -zxf - || die "installation of Go $version failed"
+            run curl --fail --location "https://dl.google.com/go/go$version.linux-${HW_ARCH}.tar.gz" | tar -C "${CSI_PROW_WORK}" -zxf - || die "installation of Go $version failed"
             mv "${CSI_PROW_WORK}/go" "${CSI_PROW_WORK}/go-$version"
         fi
         PATH="${CSI_PROW_WORK}/go-$version/bin:$PATH" run "$@"
@@ -449,7 +460,7 @@ install_kind () {
     if kind --version 2>/dev/null | grep -q " ${CSI_PROW_KIND_VERSION}$"; then
         return
     fi
-    if run curl --fail --location -o "${CSI_PROW_WORK}/bin/kind" "https://github.com/kubernetes-sigs/kind/releases/download/${CSI_PROW_KIND_VERSION}/kind-${OS_ARCH}-amd64"; then
+    if run curl --fail --location -o "${CSI_PROW_WORK}/bin/kind" "https://github.com/kubernetes-sigs/kind/releases/download/${CSI_PROW_KIND_VERSION}/kind-${OS_ARCH}-${HW_ARCH}"; then
         chmod u+x "${CSI_PROW_WORK}/bin/kind"
     else
         git_checkout https://github.com/kubernetes-sigs/kind "${GOPATH}/src/sigs.k8s.io/kind" "${CSI_PROW_KIND_VERSION}" --depth=1 &&
@@ -475,7 +486,7 @@ install_dep () {
     if dep version 2>/dev/null | grep -q "version:.*${CSI_PROW_DEP_VERSION}$"; then
         return
     fi
-    run curl --fail --location -o "${CSI_PROW_WORK}/bin/dep" "https://github.com/golang/dep/releases/download/${CSI_PROW_DEP_VERSION}/dep-linux-amd64" &&
+    run curl --fail --location -o "${CSI_PROW_WORK}/bin/dep" "https://github.com/golang/dep/releases/download/${CSI_PROW_DEP_VERSION}/dep-linux-${HW_ARCH}" &&
         chmod u+x "${CSI_PROW_WORK}/bin/dep"
 }
 
