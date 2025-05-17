@@ -57,7 +57,7 @@ var (
 	leaderElectionRetryPeriod   = flag.Duration("leader-election-retry-period", 5*time.Second, "Duration, in seconds, the LeaderElector clients should wait between tries of actions. Defaults to 5 seconds.")
 	kubeAPIQPS                  = flag.Float32("kube-api-qps", 5, "QPS to use while communicating with the kubernetes apiserver. Defaults to 5.0.")
 	kubeAPIBurst                = flag.Int("kube-api-burst", 10, "Burst to use while communicating with the kubernetes apiserver. Defaults to 10.")
-	defaultFSType               = flag.String("attacher-default-fstype", "", "The default filesystem type of the volume to use.")
+	defaultFSType               = flag.String("default-fstype", "", "The default filesystem type of the volume to use.")
 	controllers                 = flag.String("controllers", "", "A comma-separated list of controllers to enable. The possible values are: [resizer,attacher,provisioner]")
 
 	// "Shared" but probably broken if you actually try to use any of them
