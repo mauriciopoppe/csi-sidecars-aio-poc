@@ -1,12 +1,15 @@
 #!/bin/bash
 set -euxo pipefail
 
-FROM_SCRATCH="${FROM_SCRATCH:-false}"
+if [[ $(uname) != "Linux" ]]; then
+  echo "This script only works in Linux arm64/amd64, yours is `uname`"
+  exit 1
+fi
 
-# cond_exec executes arguments if FROM_SCRATCH=true
-# otherwise it just echo them
+DRY_RUN="${DRY_RUN:-false}"
+# cond_exec executes arguments if DRY_RUN=true, otherwise it just echo them
 cond_exec() {
-  if [[ $FROM_SCRATCH == "true" ]]; then
+  if [[ $DRY_RUN == "true" ]]; then
     eval $@
   fi
   echo $@
@@ -23,6 +26,7 @@ fi
 
 mkdir -p tmp pkg cmd/csi-sidecars/ staging/src/github.com/kubernetes-csi/
 
+# loop params: [repository,branch]
 for i in attacher,master provisioner,master resizer,master; do
   IFS=',' read SIDECAR SIDECAR_HASH <<< "${i}"
   if [[ ! -d pkg/${SIDECAR} ]]; then

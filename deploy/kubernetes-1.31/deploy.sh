@@ -237,11 +237,12 @@ for i in $(ls ${BASE_DIR}/hostpath/*.yaml | sort); do
     fi
     modified="$(cat "$i" | sed -e "s;${default_kubelet_data_dir}/;${KUBELET_DATA_DIR}/;" | while IFS= read -r line; do
         nocomments="$(echo "$line" | sed -e 's/ *#.*$//')"
-        # Override(mauriciopoppe): This is trying to do some text replacements
+        # Override(mauriciopoppe): I added a new if, the existing one is trying to do some text replacements
         # on all the images in the yaml file, the logic is too complex to analyze
         # and might require knowing what some of the env vars are and so on,
         # instead, if we detect that it's the sidecar image then just keep the line as it is.
         if echo "$nocomments" | grep -q '^[[:space:]]*image:[[:space:]]*csi-sidecars'; then
+          echo "        using $nocomments" >&2
           :
         elif echo "$nocomments" | grep -q '^[[:space:]]*image:[[:space:]]*'; then
             # Split 'image: quay.io/k8scsi/csi-attacher:v1.0.1'
