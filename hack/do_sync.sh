@@ -30,7 +30,7 @@ mkdir -p tmp pkg cmd/csi-sidecars/ staging/src/github.com/kubernetes-csi/
 for i in attacher,master provisioner,master resizer,master; do
   IFS=',' read SIDECAR SIDECAR_HASH <<< "${i}"
   if [[ ! -d pkg/${SIDECAR} ]]; then
-    git clone https://github.com/kubernetes-csi/external-${SIDECAR} pkg/${SIDECAR}
+    git clone --depth 1 https://github.com/kubernetes-csi/external-${SIDECAR} pkg/${SIDECAR}
     (cd pkg/${SIDECAR} && git checkout ${SIDECAR_HASH})
 
     cat pkg/${SIDECAR}/go.mod | grep "	" | grep -v "indirect" >> tmp/gomod-require.txt
@@ -93,6 +93,11 @@ for i in attacher,master provisioner,master resizer,master; do
   done
 done
 
+# Use our customized cmd/
+ln -s $PWD/hack/cmd/csi-sidecars/main.go $PWD/cmd/csi-sidecars/main.go
+mkdir -p cmd/csi-sidecars/config
+ln -s $PWD/hack/cmd/csi-sidecars/config/flags.go $PWD/cmd/csi-sidecars/config/flags.go
+
 # Create merged go.mod
 cat <<EOF >go.mod
 module github.com/kubernetes-csi/csi-sidecars
@@ -108,9 +113,6 @@ cat <<EOF >>go.mod
 EOF
 cat tmp/gomod-replace.txt | sort | uniq >> go.mod
 go mod tidy
-
-# Use our customized cmd/main.go
-cp hack/main.go cmd/csi-sidecars/main.go
 
 cat <<EOF >Makefile
 CMDS=csi-sidecars

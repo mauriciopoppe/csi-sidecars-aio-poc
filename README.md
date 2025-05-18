@@ -40,7 +40,6 @@ WARNING: The following nukes your $GOPATH/src/k8s.io/ directory. Please read .pr
 and find the `git clean -fdx` command (which removes untracked files).
 
 ```bash
-kind delete cluster --name csi-prow
 ./.prow.sh 2>&1 | tee ./.prow.sh.log
 ```
 

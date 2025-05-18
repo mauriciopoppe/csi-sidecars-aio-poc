@@ -6,7 +6,7 @@ export REGISTRY_NAME=ghcr.io/mauriciopoppe/csi-sidecars-aio-poc
 
 HW_ARCH=$(uname -m)
 if [[ "${HW_ARCH}" == "aarch64" ]]; then
-  export CSI_PROW_BUILD_PLATFORMS="linux arm64 arm64 -arm64"
+  export CSI_PROW_BUILD_PLATFORMS="linux arm64 arm64"
 elif [[ "${HW_ARCH}" == "x86_64" ]]; then
   export CSI_PROW_BUILD_PLATFORMS="linux amd64 amd64"
 else

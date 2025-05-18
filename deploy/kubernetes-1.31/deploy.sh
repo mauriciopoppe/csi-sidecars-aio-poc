@@ -242,7 +242,6 @@ for i in $(ls ${BASE_DIR}/hostpath/*.yaml | sort); do
         # and might require knowing what some of the env vars are and so on,
         # instead, if we detect that it's the sidecar image then just keep the line as it is.
         if echo "$nocomments" | grep -q '^[[:space:]]*image:[[:space:]]*csi-sidecars'; then
-          echo "        using $nocomments" >&2
           :
         elif echo "$nocomments" | grep -q '^[[:space:]]*image:[[:space:]]*'; then
             # Split 'image: quay.io/k8scsi/csi-attacher:v1.0.1'
