@@ -34,7 +34,7 @@ jobs:
     - run: |
         echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
     - run: go version
-    - run: ./hack/do_cleanup.sh
-    - run: ./hack/do_sync.sh
-    - run: ./.prow.sh
+    - run: ./hack/do_cleanup.sh 2>&1
+    - run: ./hack/do_sync.sh 2>&1
+    - run: ./.prow.sh 2>&1
     - run:  grep "Ginkgo ran" -B 4 .prow.sh.log

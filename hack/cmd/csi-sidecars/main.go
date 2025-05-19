@@ -25,6 +25,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
+	"github.com/kubernetes-csi/csi-sidecars/cmd/csi-sidecars/config"
 	flag "github.com/spf13/pflag"
 	"sigs.k8s.io/sig-storage-lib-external-provisioner/v11/controller"
 
@@ -35,36 +36,34 @@ import (
 )
 
 var (
-	// Shared variables
-	master                      = flag.String("master", "", "Master URL to build a client config from. Either this or kubeconfig needs to be set if the provisioner is being run out of cluster.")
-	kubeconfig                  = flag.String("kubeconfig", "", "Absolute path to the kubeconfig file. Required only when running out of cluster.")
-	kubeConfig                  = kubeconfig
-	csiEndpoint                 = flag.String("csi-address", "/run/csi/socket", "The gRPC endpoint for Target CSI Volume.")
-	csiAddress                  = csiEndpoint
-	showVersion                 = flag.Bool("version", false, "Show version.")
-	resync                      = flag.Duration("resync", 10*time.Minute, "Resync interval of the controller.")
-	resyncPeriod                = resync
-	workerThreads               = flag.Int("worker-threads", 10, "Number of worker threads per sidecar")
-	workers                     = workerThreads
-	timeout                     = flag.Duration("timeout", 15*time.Second, "Timeout for waiting for attaching or detaching the volume.")
-	operationTimeout            = timeout
-	retryIntervalStart          = flag.Duration("retry-interval-start", time.Second, "Initial retry interval of failed create volume or deletion. It doubles with each failure, up to retry-interval-max.")
-	retryIntervalMax            = flag.Duration("retry-interval-max", 5*time.Minute, "Maximum retry interval of failed create volume or deletion.")
-	enableLeaderElection        = flag.Bool("leader-election", false, "Enable leader election.")
-	leaderElectionNamespace     = flag.String("leader-election-namespace", "", "Namespace where the leader election resource lives. Defaults to the pod namespace if not set.")
-	leaderElectionLeaseDuration = flag.Duration("leader-election-lease-duration", 15*time.Second, "Duration, in seconds, that non-leader candidates will wait to force acquire leadership. Defaults to 15 seconds.")
-	leaderElectionRenewDeadline = flag.Duration("leader-election-renew-deadline", 10*time.Second, "Duration, in seconds, that the acting leader will retry refreshing leadership before giving up. Defaults to 10 seconds.")
-	leaderElectionRetryPeriod   = flag.Duration("leader-election-retry-period", 5*time.Second, "Duration, in seconds, the LeaderElector clients should wait between tries of actions. Defaults to 5 seconds.")
-	kubeAPIQPS                  = flag.Float32("kube-api-qps", 5, "QPS to use while communicating with the kubernetes apiserver. Defaults to 5.0.")
-	kubeAPIBurst                = flag.Int("kube-api-burst", 10, "Burst to use while communicating with the kubernetes apiserver. Defaults to 10.")
-	defaultFSType               = flag.String("attacher-default-fstype", "", "The default filesystem type of the volume to use.")
-	controllers                 = flag.String("controllers", "", "A comma-separated list of controllers to enable. The possible values are: [resizer,attacher,provisioner]")
+	master                      *string
+	kubeconfig                  *string
+	kubeConfig                  *string
+	csiEndpoint                 *string
+	csiAddress                  *string
+	showVersion                 *bool
+	resync                      *time.Duration
+	resyncPeriod                *time.Duration
+	workerThreads               *int
+	workers                     *int
+	timeout                     *time.Duration
+	operationTimeout            *time.Duration
+	retryIntervalStart          *time.Duration
+	retryIntervalMax            *time.Duration
+	enableLeaderElection        *bool
+	leaderElectionNamespace     *string
+	leaderElectionLeaseDuration *time.Duration
+	leaderElectionRenewDeadline *time.Duration
+	leaderElectionRetryPeriod   *time.Duration
+	kubeAPIQPS                  *float32
+	kubeAPIBurst                *int
+	defaultFSType               *string
+	httpEndpoint                *string
+	metricsAddress              *string
+	metricsPath                 *string
+)
 
-	// "Shared" but probably broken if you actually try to use any of them
-	httpEndpoint   = flag.String("http-endpoint", "", "The TCP network address where the HTTP server for diagnostics, including metrics and leader election health check, will listen (example: `:8080`). The default is empty string, which means the server is disabled. Only one of `--metrics-address` and `--http-endpoint` can be set.")
-	metricsAddress = flag.String("metrics-address", "", "(deprecated) The TCP network address where the prometheus metrics endpoint will listen (example: `:8080`). The default is empty string, which means metrics endpoint is disabled. Only one of `--metrics-address` and `--http-endpoint` can be set.")
-	metricsPath    = flag.String("metrics-path", "/metrics", "The HTTP path where prometheus metrics will be exposed. Default is `/metrics`.")
-
+var (
 	// Attacher specific
 	maxEntries       = flag.Int("attacher-max-entries", 0, "Max entries per each page in volume lister call, 0 means no limit.")
 	reconcileSync    = flag.Duration("attacher-reconcile-sync", 1*time.Minute, "Resync interval of the VolumeAttachment reconciler.")
@@ -95,17 +94,56 @@ var (
 
 	// Resizer specific
 	handleVolumeInUseError = flag.Bool("resizer-handle-volume-inuse-error", true, "Flag to turn on/off capability to handle volume in use error in resizer controller. Defaults to true if not set.")
-	extraModifyMetadata = flag.Bool("resizer-extra-modify-metadata", false, "If set, add pv/pvc metadata to plugin modify requests as parameters.")
+	extraModifyMetadata    = flag.Bool("resizer-extra-modify-metadata", false, "If set, add pv/pvc metadata to plugin modify requests as parameters.")
 
 	featureGates map[string]bool
 	version      = "unknown"
 )
+
+// copyFlagsFromConfigToGlobalVars copies flags from config.AIOConfiguration to the global vars
+// This is a workaround until the sidecars are refactored to work with a nested config.
+func copyFlagsFromConfigToGlobalVars() {
+	master = &config.Configuration.Master
+	kubeconfig = &config.Configuration.KubeConfig
+	kubeConfig = &config.Configuration.KubeConfig
+	csiEndpoint = &config.Configuration.CSIAddress
+	csiAddress = &config.Configuration.CSIAddress
+	showVersion = &config.Configuration.ShowVersion
+	resync = &config.Configuration.Resync
+	resyncPeriod = &config.Configuration.Resync
+	retryIntervalStart = &config.Configuration.RetryIntervalStart
+	retryIntervalMax = &config.Configuration.RetryIntervalMax
+	enableLeaderElection = &config.Configuration.LeaderElection
+	leaderElectionNamespace = &config.Configuration.LeaderElectionNamespace
+	leaderElectionLeaseDuration = &config.Configuration.LeaderElectionLeaseDuration
+	leaderElectionRenewDeadline = &config.Configuration.LeaderElectionRenewDeadline
+	leaderElectionRetryPeriod = &config.Configuration.LeaderElectionRetryPeriod
+
+	var kubeAPIQPSFloat64Ptr *float64
+	kubeAPIQPSFloat64Ptr = &config.Configuration.KubeAPIQPS
+	kubeAPIQPSFloat32 := float32(*kubeAPIQPSFloat64Ptr)
+	kubeAPIQPS = &kubeAPIQPSFloat32
+
+	kubeAPIBurst = &config.Configuration.KubeAPIBurst
+	httpEndpoint = &config.Configuration.HttpEndpoint
+	metricsAddress = &config.Configuration.MetricsAddress
+	metricsPath = &config.Configuration.MetricsPath
+
+	defaultFSType = &config.Configuration.AttacherConfiguration.DefaultFSType
+	workerThreads = &config.Configuration.AttacherConfiguration.WorkerThreads
+	workers = &config.Configuration.AttacherConfiguration.WorkerThreads
+	// TODO: define if timeout should be global or not
+	timeout = &config.Configuration.AttacherConfiguration.Timeout
+	operationTimeout = &config.Configuration.AttacherConfiguration.Timeout
+}
 
 func main() {
 	flag.Var(utilflag.NewMapStringBool(&featureGates), "feature-gates", "A set of key=value pairs that describe feature gates for alpha/experimental features. "+
 		"Options are:\n"+strings.Join(utilfeature.DefaultFeatureGate.KnownFeatures(), "\n"))
 
 	klog.InitFlags(nil)
+	config.RegisterCommonFlags(goflag.CommandLine)
+	config.RegisterAttacherFlags(goflag.CommandLine)
 	flag.CommandLine.AddGoFlagSet(goflag.CommandLine)
 	flag.Set("logtostderr", "true")
 
@@ -117,6 +155,8 @@ func main() {
 	logs.InitLogs()
 
 	flag.Parse()
+
+	copyFlagsFromConfigToGlobalVars()
 
 	// Resizier specific
 	/*if err := logsapi.ValidateAndApply(c, fg); err != nil {
@@ -131,7 +171,7 @@ func main() {
 	errs, ctx := errgroup.WithContext(context.Background())
 
 	controllersToEnable := map[string]bool{}
-	for _, ctrl := range strings.Split(*controllers, ",") {
+	for _, ctrl := range strings.Split(*&config.Configuration.Controllers, ",") {
 		controllersToEnable[ctrl] = true
 	}
 

@@ -7,4 +7,4 @@ if ! command -v trash; then
 fi
 
 # removes all the generated files
-${TRASH} pkg cmd staging vendor go.mod go.sum go.work go.work.sum tmp
+${TRASH} pkg cmd staging vendor go.mod go.sum go.work go.work.sum tmp bin

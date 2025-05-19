@@ -1,12 +1,15 @@
 #!/bin/bash
 set -euxo pipefail
 
-FROM_SCRATCH="${FROM_SCRATCH:-false}"
+if [[ $(uname) != "Linux" ]]; then
+  echo "This script only works in Linux arm64/amd64, yours is `uname`"
+  exit 1
+fi
 
-# cond_exec executes arguments if FROM_SCRATCH=true
-# otherwise it just echo them
+DRY_RUN="${DRY_RUN:-false}"
+# cond_exec executes arguments if DRY_RUN=true, otherwise it just echo them
 cond_exec() {
-  if [[ $FROM_SCRATCH == "true" ]]; then
+  if [[ $DRY_RUN == "true" ]]; then
     eval $@
   fi
   echo $@
@@ -23,10 +26,11 @@ fi
 
 mkdir -p tmp pkg cmd/csi-sidecars/ staging/src/github.com/kubernetes-csi/
 
+# loop params: [repository,branch]
 for i in attacher,master provisioner,master resizer,master; do
   IFS=',' read SIDECAR SIDECAR_HASH <<< "${i}"
   if [[ ! -d pkg/${SIDECAR} ]]; then
-    git clone https://github.com/kubernetes-csi/external-${SIDECAR} pkg/${SIDECAR}
+    git clone --depth 1 https://github.com/kubernetes-csi/external-${SIDECAR} pkg/${SIDECAR}
     (cd pkg/${SIDECAR} && git checkout ${SIDECAR_HASH})
 
     cat pkg/${SIDECAR}/go.mod | grep "	" | grep -v "indirect" >> tmp/gomod-require.txt
@@ -89,6 +93,11 @@ for i in attacher,master provisioner,master resizer,master; do
   done
 done
 
+# Use our customized cmd/
+ln -s $PWD/hack/cmd/csi-sidecars/main.go $PWD/cmd/csi-sidecars/main.go
+mkdir -p cmd/csi-sidecars/config
+ln -s $PWD/hack/cmd/csi-sidecars/config/flags.go $PWD/cmd/csi-sidecars/config/flags.go
+
 # Create merged go.mod
 cat <<EOF >go.mod
 module github.com/kubernetes-csi/csi-sidecars
@@ -104,9 +113,6 @@ cat <<EOF >>go.mod
 EOF
 cat tmp/gomod-replace.txt | sort | uniq >> go.mod
 go mod tidy
-
-# Use our customized cmd/main.go
-cp hack/main.go cmd/csi-sidecars/main.go
 
 cat <<EOF >Makefile
 CMDS=csi-sidecars

@@ -787,9 +787,13 @@ install_snapshot_crds() {
       CRD_BASE_DIR="${REPO_DIR}/client/config/crd"
   fi
   echo "Installing snapshot CRDs from ${CRD_BASE_DIR}"
-  kubectl apply -f "${CRD_BASE_DIR}/snapshot.storage.k8s.io_volumesnapshotclasses.yaml" --validate=false
-  kubectl apply -f "${CRD_BASE_DIR}/snapshot.storage.k8s.io_volumesnapshots.yaml" --validate=false
-  kubectl apply -f "${CRD_BASE_DIR}/snapshot.storage.k8s.io_volumesnapshotcontents.yaml" --validate=false
+  # override(mauriciopoppe): I changed the command to get the manifest with curl before sending it to kubectl apply.
+  sleep 2
+  curl -s "${CRD_BASE_DIR}/snapshot.storage.k8s.io_volumesnapshotclasses.yaml" | kubectl apply --validate=false -f -
+  sleep 2
+  curl -s "${CRD_BASE_DIR}/snapshot.storage.k8s.io_volumesnapshots.yaml" | kubectl apply --validate=false -f -
+  sleep 2
+  curl -s "${CRD_BASE_DIR}/snapshot.storage.k8s.io_volumesnapshotcontents.yaml" | kubectl apply --validate=false -f -
   cnt=0
   until kubectl get volumesnapshotclasses.snapshot.storage.k8s.io \
     && kubectl get volumesnapshots.snapshot.storage.k8s.io \
@@ -811,10 +815,10 @@ install_snapshot_controller() {
       CONTROLLER_DIR="${REPO_DIR}"
   fi
   SNAPSHOT_RBAC_YAML="${CONTROLLER_DIR}/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
-  echo "kubectl apply -f ${SNAPSHOT_RBAC_YAML}"
   # Ignore: Double quote to prevent globbing and word splitting.
   # shellcheck disable=SC2086
-  kubectl apply -f ${SNAPSHOT_RBAC_YAML}
+  sleep 2
+  curl -s "${SNAPSHOT_RBAC_YAML}" | kubectl apply -f -
 
   cnt=0
   until kubectl get clusterrolebinding snapshot-controller-role; do
