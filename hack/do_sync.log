@@ -1,4 +1,6 @@
-+ FROM_SCRATCH=false
+++ uname
++ [[ Linux != \L\i\n\u\x ]]
++ DRY_RUN=false
 ++ go version
 + [[ ! go version go1.24.3 linux/arm64 =~ go1.24 ]]
 + TRASH=trash
@@ -9,7 +11,7 @@
 + IFS=,
 + read SIDECAR SIDECAR_HASH
 + [[ ! -d pkg/attacher ]]
-+ git clone https://github.com/kubernetes-csi/external-attacher pkg/attacher
++ git clone --depth 1 https://github.com/kubernetes-csi/external-attacher pkg/attacher
 Cloning into 'pkg/attacher'...
 + cd pkg/attacher
 + git checkout master
@@ -89,11 +91,19 @@ Your branch is up to date with 'origin/master'.
 + sed -i.bak '/featuregate"/d' cmd/csi-sidecars/attacher_main.go
 + sed -i.bak /logs/d cmd/csi-sidecars/attacher_main.go
 + '[' attacher = resizer ']'
++ [[ attacher == \a\t\t\a\c\h\e\r ]]
++ rm pkg/attacher/cmd/csi-attacher/main.go
++ symlink_from_hack_to_root hack/pkg/attacher/cmd/csi-attacher/main.go
++ file=hack/pkg/attacher/cmd/csi-attacher/main.go
++ file_without_hack=pkg/attacher/cmd/csi-attacher/main.go
+++ dirname pkg/attacher/cmd/csi-attacher/main.go
++ mkdir -p pkg/attacher/cmd/csi-attacher
++ ln -s /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/hack/pkg/attacher/cmd/csi-attacher/main.go /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/pkg/attacher/cmd/csi-attacher/main.go
 + for i in attacher,master provisioner,master resizer,master
 + IFS=,
 + read SIDECAR SIDECAR_HASH
 + [[ ! -d pkg/provisioner ]]
-+ git clone https://github.com/kubernetes-csi/external-provisioner pkg/provisioner
++ git clone --depth 1 https://github.com/kubernetes-csi/external-provisioner pkg/provisioner
 Cloning into 'pkg/provisioner'...
 + cd pkg/provisioner
 + git checkout master
@@ -229,11 +239,12 @@ Your branch is up to date with 'origin/master'.
 + sed -i.bak '/featuregate"/d' cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak /logs/d cmd/csi-sidecars/provisioner_util_test.go
 + '[' provisioner = resizer ']'
++ [[ provisioner == \a\t\t\a\c\h\e\r ]]
 + for i in attacher,master provisioner,master resizer,master
 + IFS=,
 + read SIDECAR SIDECAR_HASH
 + [[ ! -d pkg/resizer ]]
-+ git clone https://github.com/kubernetes-csi/external-resizer pkg/resizer
++ git clone --depth 1 https://github.com/kubernetes-csi/external-resizer pkg/resizer
 Cloning into 'pkg/resizer'...
 + cd pkg/resizer
 + git checkout master
@@ -324,6 +335,25 @@ Your branch is up to date with 'origin/master'.
 + sed -i.bak /logs/d cmd/csi-sidecars/resizer_main.go
 + '[' resizer = resizer ']'
 + sed -i.bak /strings/d cmd/csi-sidecars/resizer_main.go
++ [[ resizer == \a\t\t\a\c\h\e\r ]]
++ symlink_from_hack_to_root hack/cmd/csi-sidecars/main.go
++ file=hack/cmd/csi-sidecars/main.go
++ file_without_hack=cmd/csi-sidecars/main.go
+++ dirname cmd/csi-sidecars/main.go
++ mkdir -p cmd/csi-sidecars
++ ln -s /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/hack/cmd/csi-sidecars/main.go /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/cmd/csi-sidecars/main.go
++ symlink_from_hack_to_root hack/cmd/csi-sidecars/config/flags.go
++ file=hack/cmd/csi-sidecars/config/flags.go
++ file_without_hack=cmd/csi-sidecars/config/flags.go
+++ dirname cmd/csi-sidecars/config/flags.go
++ mkdir -p cmd/csi-sidecars/config
++ ln -s /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/hack/cmd/csi-sidecars/config/flags.go /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/cmd/csi-sidecars/config/flags.go
++ symlink_from_hack_to_root hack/pkg/attacher/cmd/csi-attacher/config/flags.go
++ file=hack/pkg/attacher/cmd/csi-attacher/config/flags.go
++ file_without_hack=pkg/attacher/cmd/csi-attacher/config/flags.go
+++ dirname pkg/attacher/cmd/csi-attacher/config/flags.go
++ mkdir -p pkg/attacher/cmd/csi-attacher/config
++ ln -s /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/hack/pkg/attacher/cmd/csi-attacher/config/flags.go /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/pkg/attacher/cmd/csi-attacher/config/flags.go
 + cat
 + cat tmp/gomod-require.txt
 + sort
@@ -333,145 +363,6 @@ Your branch is up to date with 'origin/master'.
 + sort
 + uniq
 + go mod tidy
-go: downloading k8s.io/apimachinery v0.33.0
-go: downloading k8s.io/apiserver v0.33.0
-go: downloading k8s.io/component-base v0.33.0
-go: downloading k8s.io/client-go v0.33.0
-go: downloading sigs.k8s.io/controller-runtime v0.20.4
-go: downloading github.com/container-storage-interface/spec v1.11.0
-go: downloading k8s.io/api v0.33.0
-go: downloading google.golang.org/grpc v1.72.0
-go: downloading github.com/onsi/gomega v1.37.0
-go: downloading github.com/evanphx/json-patch v5.9.11+incompatible
-go: downloading github.com/onsi/ginkgo/v2 v2.23.4
-go: downloading k8s.io/klog/v2 v2.130.1
-go: downloading github.com/kubernetes-csi/csi-lib-utils v0.21.0
-go: downloading k8s.io/kubernetes v1.33.0
-go: downloading github.com/spf13/pflag v1.0.6
-go: downloading golang.org/x/sync v0.13.0
-go: downloading github.com/kubernetes-csi/external-snapshotter/client/v8 v8.2.0
-go: downloading github.com/prometheus/client_golang v1.22.0
-go: downloading k8s.io/csi-translation-lib v0.33.0
-go: downloading github.com/golang/mock v1.6.0
-go: downloading sigs.k8s.io/sig-storage-lib-external-provisioner/v11 v11.0.1
-go: downloading github.com/kubernetes-csi/csi-test/v5 v5.3.1
-go: downloading github.com/go-logr/logr v1.4.2
-go: downloading github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
-go: downloading github.com/stretchr/testify v1.10.0
-go: downloading google.golang.org/protobuf v1.36.6
-go: downloading sigs.k8s.io/gateway-api v1.3.0
-go: downloading k8s.io/component-helpers v0.33.0
-go: downloading github.com/google/go-cmp v0.7.0
-go: downloading github.com/evanphx/json-patch/v5 v5.9.11
-go: downloading k8s.io/utils v0.0.0-20241210054802-24370beab758
-go: downloading gopkg.in/evanphx/json-patch.v4 v4.12.0
-go: downloading k8s.io/apiextensions-apiserver v0.33.0
-go: downloading sigs.k8s.io/randfill v1.0.0
-go: downloading sigs.k8s.io/yaml v1.4.0
-go: downloading sigs.k8s.io/structured-merge-diff/v4 v4.7.0
-go: downloading golang.org/x/net v0.39.0
-go: downloading go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.58.0
-go: downloading go.opentelemetry.io/otel/trace v1.34.0
-go: downloading go.uber.org/goleak v1.3.0
-go: downloading go.opentelemetry.io/otel v1.34.0
-go: downloading github.com/spf13/cobra v1.9.1
-go: downloading golang.org/x/time v0.9.0
-go: downloading google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a
-go: downloading github.com/prometheus/client_model v0.6.1
-go: downloading github.com/blang/semver/v4 v4.0.0
-go: downloading github.com/prometheus/procfs v0.15.1
-go: downloading golang.org/x/sys v0.32.0
-go: downloading github.com/prometheus/common v0.62.0
-go: downloading golang.org/x/term v0.31.0
-go: downloading github.com/beorn7/perks v1.0.1
-go: downloading github.com/cespare/xxhash/v2 v2.3.0
-go: downloading github.com/klauspost/compress v1.18.0
-go: downloading sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8
-go: downloading k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff
-go: downloading google.golang.org/genproto v0.0.0-20240123012728-ef4313101c80
-go: downloading github.com/miekg/dns v1.1.65
-go: downloading github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
-go: downloading github.com/go-logr/zapr v1.3.0
-go: downloading go.uber.org/zap v1.27.0
-go: downloading github.com/fxamacker/cbor/v2 v2.7.0
-go: downloading go.uber.org/automaxprocs v1.6.0
-go: downloading golang.org/x/oauth2 v0.27.0
-go: downloading github.com/google/gnostic-models v0.6.9
-go: downloading github.com/stretchr/objx v0.5.2
-go: downloading go.opentelemetry.io/otel/metric v1.34.0
-go: downloading k8s.io/pod-security-admission v0.33.0
-go: downloading github.com/inconshreveable/mousetrap v1.1.0
-go: downloading gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c
-go: downloading github.com/kylelemons/godebug v1.1.0
-go: downloading golang.org/x/tools v0.31.0
-go: downloading go.uber.org/multierr v1.11.0
-go: downloading golang.org/x/text v0.24.0
-go: downloading github.com/go-task/slim-sprig/v3 v3.0.0
-go: downloading github.com/go-openapi/swag v0.23.0
-go: downloading github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572
-go: downloading github.com/go-openapi/jsonreference v0.21.0
-go: downloading github.com/x448/float16 v0.8.4
-go: downloading k8s.io/kubectl v0.33.0
-go: downloading k8s.io/mount-utils v0.33.0
-go: downloading golang.org/x/crypto v0.37.0
-go: downloading go.opentelemetry.io/otel/sdk/metric v1.34.0
-go: downloading github.com/opencontainers/selinux v1.11.1
-go: downloading go.opentelemetry.io/otel/sdk v1.34.0
-go: downloading github.com/google/pprof v0.0.0-20250403155104-27863c87afa6
-go: downloading github.com/kr/pretty v0.3.1
-go: downloading github.com/emicklei/go-restful/v3 v3.12.1
-go: downloading github.com/mailru/easyjson v0.9.0
-go: downloading github.com/go-openapi/jsonpointer v0.21.0
-go: downloading go.opentelemetry.io/auto/sdk v1.1.0
-go: downloading github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674
-go: downloading github.com/moby/sys/userns v0.1.0
-go: downloading github.com/opencontainers/cgroups v0.0.1
-go: downloading k8s.io/cri-api v0.33.0
-go: downloading k8s.io/kubelet v0.33.0
-go: downloading github.com/google/cadvisor v0.52.1
-go: downloading k8s.io/controller-manager v0.33.0
-go: downloading github.com/kr/text v0.2.0
-go: downloading github.com/rogpeppe/go-internal v1.13.1
-go: downloading github.com/moby/spdystream v0.5.0
-go: downloading k8s.io/cri-client v0.33.0
-go: downloading github.com/moby/sys/mountinfo v0.7.2
-go: downloading golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
-go: downloading k8s.io/dynamic-resource-allocation v0.33.0
-go: downloading github.com/fsnotify/fsnotify v1.7.0
-go: downloading k8s.io/kube-scheduler v0.33.0
-go: downloading github.com/JeffAshton/win_pdh v0.0.0-20161109143554-76bb4ee9f0ab
-go: downloading go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.33.0
-go: downloading go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.58.0
-go: downloading github.com/coreos/go-systemd/v22 v22.5.0
-go: downloading github.com/cyphar/filepath-securejoin v0.4.1
-go: downloading github.com/godbus/dbus/v5 v5.1.0
-go: downloading github.com/mistifyio/go-zfs v2.1.2-0.20190413222219-f784269be439+incompatible
-go: downloading github.com/google/cel-go v0.23.2
-go: downloading go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.33.0
-go: downloading sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.31.2
-go: downloading github.com/euank/go-kmsg-parser v2.0.0+incompatible
-go: downloading github.com/karrick/godirwalk v1.17.0
-go: downloading github.com/Microsoft/go-winio v0.6.2
-go: downloading github.com/felixge/httpsnoop v1.0.4
-go: downloading github.com/containerd/containerd/api v1.8.0
-go: downloading github.com/containerd/errdefs v1.0.0
-go: downloading github.com/containerd/errdefs/pkg v0.3.0
-go: downloading github.com/containerd/typeurl/v2 v2.2.2
-go: downloading google.golang.org/genproto/googleapis/api v0.0.0-20250218202821-56aae31c358a
-go: downloading go.opentelemetry.io/proto/otlp v1.4.0
-go: downloading cel.dev/expr v0.20.0
-go: downloading github.com/stoewer/go-strcase v1.3.0
-go: downloading github.com/containerd/ttrpc v1.2.6
-go: downloading k8s.io/cloud-provider v0.33.0
-go: downloading github.com/cenkalti/backoff/v4 v4.3.0
-go: downloading github.com/antlr4-go/antlr/v4 v4.13.0
-go: downloading github.com/opencontainers/image-spec v1.1.1
-go: downloading github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0
-go: downloading github.com/grpc-ecosystem/grpc-gateway v1.16.0
-go: downloading golang.org/x/mod v0.24.0
-go: downloading github.com/prashantv/gostub v1.1.0
-go: downloading github.com/docker/docker v26.1.4+incompatible
-+ cp hack/main.go cmd/csi-sidecars/main.go
 + cat
 + csi_lib_utils=staging/src/github.com/kubernetes-csi/csi-lib-utils
 + [[ ! -d staging/src/github.com/kubernetes-csi/csi-lib-utils ]]
@@ -513,7 +404,7 @@ export os_arch_seen="" && echo '' | tr ';' '\n' | while read -r os arch buildx_p
 	if ! [ ${#os_arch_seen_pre} = ${#os_arch_seen} ]; then \
 		continue; \
 	fi; \
-	if ! (set -x; cd ./cmd/csi-sidecars && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build  -a -ldflags ' -X main.version=49ec39039b0b24e1f7a21a3779efcd00b783fb7f -extldflags "-static"' -o "/home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars$suffix" .); then \
+	if ! (set -x; cd ./cmd/csi-sidecars && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build  -a -ldflags ' -X main.version=cce1dbc9976c7b93985cab9ec8bf8da6b0025feb -extldflags "-static"' -o "/home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars$suffix" .); then \
 		echo "Building csi-sidecars for GOOS=$os GOARCH=$arch failed, see error(s) above."; \
 		exit 1; \
 	fi; \
@@ -523,6 +414,138 @@ done
 + CGO_ENABLED=0
 + GOOS=
 + GOARCH=
-+ go build -a -ldflags ' -X main.version=49ec39039b0b24e1f7a21a3779efcd00b783fb7f -extldflags "-static"' -o /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars .
-+ cat
++ go build -a -ldflags ' -X main.version=cce1dbc9976c7b93985cab9ec8bf8da6b0025feb -extldflags "-static"' -o /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars .
++ ./bin/csi-sidecars --help
+Usage of ./bin/csi-sidecars:
+      --add_dir_header                                    If true, adds the file directory to the header of the log messages
+      --alsologtostderr                                   log to standard error as well as files (no effect when -logtostderr=true)
+      --attacher-default-fstype string                    The default filesystem type of the volume to use.
+      --attacher-max-entries int                          Max entries per each page in volume lister call, 0 means no limit.
+      --attacher-max-grpc-log-length int                  The maximum amount of characters logged for every grpc responses. Defaults to no limit (default -1)
+      --attacher-reconcile-sync duration                  Resync interval of the VolumeAttachment reconciler. (default 1m0s)
+      --attacher-timeout duration                         Timeout for waiting for attaching or detaching the volume. (default 15s)
+      --attacher-worker-threads int                       Number of worker threads per sidecar (default 10)
+      --controllers string                                A comma-separated list of controllers to enable. The possible values are: [resizer,attacher,provisioner]
+      --csi-address string                                The gRPC endpoint for Target CSI Volume. (default "/run/csi/socket")
+      --feature-gates mapStringBool                       A set of key=value pairs that describe feature gates for alpha/experimental features. Options are:
+                                                          AllAlpha=true|false (ALPHA - default=false)
+                                                          AllBeta=true|false (BETA - default=false)
+                                                          AnnotateFsResize=true|false (ALPHA - default=false)
+                                                          CrossNamespaceVolumeDataSource=true|false (ALPHA - default=false)
+                                                          RecoverVolumeExpansionFailure=true|false (BETA - default=true)
+                                                          VolumeAttributesClass=true|false (BETA - default=false)
+      --http-endpoint :8080                               The TCP network address where the HTTP server for diagnostics, including metrics and leader election health check, will listen (example: :8080). The default is empty string, which means the server is disabled. Only one of `--metrics-address` and `--http-endpoint` can be set.
+      --kube-api-burst int                                Burst to use while communicating with the kubernetes apiserver. Defaults to 10. (default 10)
+      --kube-api-qps float                                QPS to use while communicating with the kubernetes apiserver. Defaults to 5.0. (default 5)
+      --kubeconfig string                                 Absolute path to the kubeconfig file. Required only when running out of cluster.
+      --leader-election                                   Enable leader election.
+      --leader-election-lease-duration duration           Duration, in seconds, that non-leader candidates will wait to force acquire leadership. Defaults to 15 seconds. (default 15s)
+      --leader-election-namespace string                  Namespace where the leader election resource lives. Defaults to the pod namespace if not set.
+      --leader-election-renew-deadline duration           Duration, in seconds, that the acting leader will retry refreshing leadership before giving up. Defaults to 10 seconds. (default 10s)
+      --leader-election-retry-period duration             Duration, in seconds, the LeaderElector clients should wait between tries of actions. Defaults to 5 seconds. (default 5s)
+      --log_backtrace_at traceLocation                    when logging hits line file:N, emit a stack trace (default :0)
+      --log_dir string                                    If non-empty, write log files in this directory (no effect when -logtostderr=true)
+      --log_file string                                   If non-empty, use this log file (no effect when -logtostderr=true)
+      --log_file_max_size uint                            Defines the maximum size a log file can grow to (no effect when -logtostderr=true). Unit is megabytes. If the value is 0, the maximum file size is unlimited. (default 1800)
+      --logtostderr                                       log to standard error instead of files (default true)
+      --master string                                     Master URL to build a client config from. Either this or kubeconfig needs to be set if the provisioner is being run out of cluster.
+      --metrics-address :8080                             (deprecated) The TCP network address where the prometheus metrics endpoint will listen (example: :8080). The default is empty string, which means metrics endpoint is disabled. Only one of `--metrics-address` and `--http-endpoint` can be set.
+      --metrics-path /metrics                             The HTTP path where prometheus metrics will be exposed. Default is /metrics. (default "/metrics")
+      --one_output                                        If true, only write logs to their native severity level (vs also writing to each lower severity level; no effect when -logtostderr=true)
+      --provisioner-capacity-for-immediate-binding        Enables producing capacity information for storage classes with immediate binding. Not needed for the Kubernetes scheduler, maybe useful for other consumers or for debugging.
+      --provisioner-capacity-ownerref-level int           The level indicates the number of objects that need to be traversed starting from the pod identified by the POD_NAME and NAMESPACE environment variables to reach the owning object for CSIStorageCapacity objects: -1 for no owner, 0 for the pod itself, 1 for a StatefulSet or DaemonSet, 2 for a Deployment, etc. (default 1)
+      --provisioner-capacity-poll-interval duration       How long the external-provisioner waits before checking for storage capacity changes. (default 1m0s)
+      --provisioner-capacity-threads uint                 Number of simultaneously running threads, handling CSIStorageCapacity objects (default 1)
+      --provisioner-cloning-protection-threads uint       Number of simultaneously running threads, handling cloning finalizer removal (default 1)
+      --provisioner-controller-publish-readonly           This option enables PV to be marked as readonly at controller publish volume call if PVC accessmode has been set to ROX.
+      --provisioner-enable-capacity                       This enables producing CSIStorageCapacity objects with capacity information from the driver's GetCapacity call.
+      --provisioner-enable-pprof /debug/pprof/            Enable pprof profiling on the TCP network address specified by --http-endpoint. The HTTP path is /debug/pprof/.
+      --provisioner-extra-create-metadata                 If set, add pv/pvc metadata to plugin create requests as parameters.
+      --provisioner-immediate-topology                    Immediate binding: pass aggregated cluster topologies for all nodes where the CSI driver is available (enabled, the default) or no topology requirements (if disabled). (default true)
+      --provisioner-kube-api-capacity-burst int           Burst to use for storage capacity updates while communicating with the kubernetes apiserver. Defaults to 5. (default 5)
+      --provisioner-kube-api-capacity-qps float32         QPS to use for storage capacity updates while communicating with the kubernetes apiserver. Defaults to 1.0. (default 1)
+      --provisioner-node-deployment                       Enables deploying the external-provisioner together with a CSI driver on nodes to manage node-local volumes.
+      --provisioner-node-deployment-base-delay duration   Determines how long the external-provisioner sleeps initially before trying to own a PVC with immediate binding. (default 20s)
+      --provisioner-node-deployment-immediate-binding     Determines whether immediate binding is supported when deployed on each node. (default true)
+      --provisioner-node-deployment-max-delay duration    Determines how long the external-provisioner sleeps at most before trying to own a PVC with immediate binding. (default 1m0s)
+      --provisioner-prevent-volume-mode-conversion        Prevents an unauthorised user from modifying the volume mode when creating a PVC from an existing VolumeSnapshot. (default true)
+      --provisioner-strict-topology                       Late binding: pass only selected node topology to CreateVolume Request, unlike default behavior of passing aggregated cluster topologies that match with topology keys of the selected node.
+      --provisioner-volume-name-prefix string             Prefix to apply to the name of a created volume. (default "pvc")
+      --provisioner-volume-name-uuid-length int           Truncates generated UUID of a created volume to this length. Defaults behavior is to NOT truncate. (default -1)
+      --resizer-extra-modify-metadata                     If set, add pv/pvc metadata to plugin modify requests as parameters.
+      --resizer-handle-volume-inuse-error                 Flag to turn on/off capability to handle volume in use error in resizer controller. Defaults to true if not set. (default true)
+      --resync duration                                   Resync interval of the controller. (default 10m0s)
+      --retry-interval-max duration                       Maximum retry interval of failed create volume or deletion. (default 5m0s)
+      --retry-interval-start duration                     Initial retry interval of failed create volume or deletion. It doubles with each failure, up to retry-interval-max. (default 1s)
+      --skip_headers                                      If true, avoid header prefixes in the log messages
+      --skip_log_headers                                  If true, avoid headers when opening log files (no effect when -logtostderr=true)
+      --stderrthreshold severity                          logs at or above this threshold go to stderr when writing to files and stderr (no effect when -logtostderr=true or -alsologtostderr=true) (default 2)
+  -v, --v Level                                           number for the log level verbosity
+      --version                                           Show version.
+      --vmodule moduleSpec                                comma-separated list of pattern=N settings for file-filtered logging
+pflag: help requested
++ true
++ go build -a -ldflags ' -X main.version=foo -extldflags "-static"' -o ./bin/csi-attacher ./pkg/attacher/cmd/csi-attacher
++ ./bin/csi-attacher --help
+Usage of ./bin/csi-attacher:
+  -csi-address string
+    	Address of the CSI driver socket. (default "/run/csi/socket")
+  -default-fstype string
+    	The default filesystem type of the volume to use.
+  -http-endpoint :8080
+    	The TCP network address where the HTTP server for diagnostics, including metrics and leader election health check, will listen (example: :8080). The default is empty string, which means the server is disabled. Only one of `--metrics-address` and `--http-endpoint` can be set.
+  -kube-api-burst int
+    	Burst to use while communicating with the kubernetes apiserver. Defaults to 10. (default 10)
+  -kube-api-qps float
+    	QPS to use while communicating with the kubernetes apiserver. Defaults to 5.0. (default 5)
+  -kubeconfig string
+    	Absolute path to the kubeconfig file. Required only when running out of cluster.
+  -leader-election
+    	Enable leader election.
+  -leader-election-lease-duration duration
+    	Duration, in seconds, that non-leader candidates will wait to force acquire leadership. Defaults to 15 seconds. (default 15s)
+  -leader-election-namespace string
+    	Namespace where the leader election resource lives. Defaults to the pod namespace if not set.
+  -leader-election-renew-deadline duration
+    	Duration, in seconds, that the acting leader will retry refreshing leadership before giving up. Defaults to 10 seconds. (default 10s)
+  -leader-election-retry-period duration
+    	Duration, in seconds, the LeaderElector clients should wait between tries of actions. Defaults to 5 seconds. (default 5s)
+  -log-flush-frequency duration
+    	Maximum number of seconds between log flushes (default 5s)
+  -log-json-info-buffer-size value
+    	[Alpha] In JSON format with split output streams, the info messages can be buffered for a while to increase performance. The default value of zero bytes disables buffering. The size can be specified as number of bytes (512), multiples of 1000 (1K), multiples of 1024 (2Ki), or powers of those (3M, 4G, 5Mi, 6Gi). Enable the LoggingAlphaOptions feature gate to use this.
+  -log-json-split-stream
+    	[Alpha] In JSON format, write error messages to stderr and info messages to stdout. The default is to write a single stream to stdout. Enable the LoggingAlphaOptions feature gate to use this.
+  -log-text-info-buffer-size value
+    	[Alpha] In text format with split output streams, the info messages can be buffered for a while to increase performance. The default value of zero bytes disables buffering. The size can be specified as number of bytes (512), multiples of 1000 (1K), multiples of 1024 (2Ki), or powers of those (3M, 4G, 5Mi, 6Gi). Enable the LoggingAlphaOptions feature gate to use this.
+  -log-text-split-stream
+    	[Alpha] In text format, write error messages to stderr and info messages to stdout. The default is to write a single stream to stdout. Enable the LoggingAlphaOptions feature gate to use this.
+  -logging-format string
+    	Sets the log format. Permitted formats: "json" (gated by LoggingBetaOptions), "text". (default "text")
+  -max-entries int
+    	Max entries per each page in volume lister call, 0 means no limit.
+  -max-grpc-log-length int
+    	The maximum amount of characters logged for every grpc responses. Defaults to no limit (default -1)
+  -metrics-address :8080
+    	(deprecated) The TCP network address where the prometheus metrics endpoint will listen (example: :8080). The default is empty string, which means metrics endpoint is disabled. Only one of `--metrics-address` and `--http-endpoint` can be set.
+  -metrics-path /metrics
+    	The HTTP path where prometheus metrics will be exposed. Default is /metrics. (default "/metrics")
+  -reconcile-sync duration
+    	Resync interval of the VolumeAttachment reconciler. (default 1m0s)
+  -resync duration
+    	Resync interval of the controller. (default 10m0s)
+  -retry-interval-max duration
+    	Maximum retry interval of failed create volume or deletion. (default 5m0s)
+  -retry-interval-start duration
+    	Initial retry interval of failed create volume or deletion. It doubles with each failure, up to retry-interval-max. (default 1s)
+  -timeout duration
+    	Timeout for waiting for attaching or detaching the volume. (default 15s)
+  -v value
+    	number for the log level verbosity
+  -version
+    	Show version.
+  -vmodule value
+    	comma-separated list of pattern=N settings for file-filtered logging (only works for text log format)
+  -worker-threads int
+    	Number of worker threads per sidecar (default 10)
 + cat

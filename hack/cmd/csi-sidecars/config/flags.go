@@ -3,16 +3,9 @@ package config
 import (
 	"flag"
 	"time"
-)
 
-type AttacherConfiguration struct {
-	MaxEntries      int
-	ReconcileSync   time.Duration
-	MaxGRPCLogLenth int
-	WorkerThreads   int
-	DefaultFSType   string
-	Timeout         time.Duration
-}
+	attacherconfiguration "github.com/kubernetes-csi/csi-sidecars/pkg/attacher/cmd/csi-attacher/config"
+)
 
 type AIOConfiguration struct {
 	ShowVersion bool
@@ -40,11 +33,11 @@ type AIOConfiguration struct {
 
 	Controllers string
 
-	AttacherConfiguration AttacherConfiguration
+	AttacherConfiguration attacherconfiguration.AttacherConfiguration
 }
 
 var Configuration = AIOConfiguration{
-	AttacherConfiguration: AttacherConfiguration{},
+	AttacherConfiguration: attacherconfiguration.AttacherConfiguration{},
 }
 
 func RegisterCommonFlags(flags *flag.FlagSet) {
@@ -71,8 +64,3 @@ func RegisterCommonFlags(flags *flag.FlagSet) {
 	flags.StringVar(&Configuration.Controllers, "controllers", "", "A comma-separated list of controllers to enable. The possible values are: [resizer,attacher,provisioner]")
 }
 
-func RegisterAttacherFlags(flags *flag.FlagSet) {
-	flags.StringVar(&Configuration.AttacherConfiguration.DefaultFSType, "default-fstype", "", "The default filesystem type of the volume to use.")
-	flags.IntVar(&Configuration.AttacherConfiguration.WorkerThreads, "worker-threads", 10, "Number of worker threads per sidecar")
-	flags.DurationVar(&Configuration.AttacherConfiguration.Timeout, "timeout", 15*time.Second, "Timeout for waiting for attaching or detaching the volume.")
-}

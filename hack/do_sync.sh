@@ -26,6 +26,15 @@ fi
 
 mkdir -p tmp pkg cmd/csi-sidecars/ staging/src/github.com/kubernetes-csi/
 
+symlink_from_hack_to_root() {
+  file="$1"
+  # strip hack/ prefix
+  file_without_hack="${file#hack/}"
+  mkdir -p "$(dirname $file_without_hack)"
+  ln -s $PWD/$file $PWD/$file_without_hack
+}
+
+
 # loop params: [repository,branch]
 for i in attacher,master provisioner,master resizer,master; do
   IFS=',' read SIDECAR SIDECAR_HASH <<< "${i}"
@@ -91,12 +100,20 @@ for i in attacher,master provisioner,master resizer,master; do
     fi
 
   done
+
+  # This is a temporary change that tests what it'd be to make a refactor
+  # in how flags are parsed in the individual sidecar only, it's tested
+  # later when building the individual sidecar.
+  if [[ "${SIDECAR}" == "attacher" ]]; then
+    rm pkg/attacher/cmd/csi-attacher/main.go
+    symlink_from_hack_to_root hack/pkg/attacher/cmd/csi-attacher/main.go
+  fi
 done
 
 # Use our customized cmd/
-ln -s $PWD/hack/cmd/csi-sidecars/main.go $PWD/cmd/csi-sidecars/main.go
-mkdir -p cmd/csi-sidecars/config
-ln -s $PWD/hack/cmd/csi-sidecars/config/flags.go $PWD/cmd/csi-sidecars/config/flags.go
+symlink_from_hack_to_root hack/cmd/csi-sidecars/main.go
+symlink_from_hack_to_root hack/cmd/csi-sidecars/config/flags.go
+symlink_from_hack_to_root hack/pkg/attacher/cmd/csi-attacher/config/flags.go
 
 # Create merged go.mod
 cat <<EOF >go.mod
@@ -141,8 +158,13 @@ go work use ./staging/src/github.com/kubernetes-csi/csi-lib-utils
 go mod tidy
 go work vendor
 
-# checkpoint: test that we can build
+# checkpoint: test that we can build the project.
 make build
+./bin/csi-sidecars --help || true
+
+# checkpoint for individual sidecar refactor: test that we can build attacher
+go build -a -ldflags ' -X main.version=foo -extldflags "-static"' -o ./bin/csi-attacher ./pkg/attacher/cmd/csi-attacher
+./bin/csi-attacher --help || true
 
 cat <<'EOF' > Dockerfile
 FROM gcr.io/distroless/static:latest
@@ -154,12 +176,15 @@ COPY ${binary} csi-sidecars
 ENTRYPOINT ["/csi-sidecars"]
 EOF
 
-cat <<'EOF' > .cloudbuild.sh
-. release-tools/prow.sh
-gcr_cloud_build
-EOF
-
-# TODO: This command doesn't work in my arm mac
-# chmod +x .cloudbuild.sh
-# docker run -v $PWD:/app -w /app debian /bin/bash -c 'apt-get -y update; apt-get -y install make curl; PULL_BASE_REF=master REGISTRY_NAME=368597081700.dkr.ecr.us-west-2.amazonaws.com/csi-sidecar-aio-poc CSI_PROW_BUILD_PLATFORMS="linux amd64 amd64" ./.cloudbuild.sh'
-# PULL_BASE_REF=master REGISTRY_NAME=368597081700.dkr.ecr.us-west-2.amazonaws.com/csi-sidecar-aio-poc CSI_PROW_BUILD_PLATFORMS="linux amd64 amd64" ./.cloudbuild.sh
+# export PULL_BASE_REF=master
+# export REGISTRY_NAME=ghcr.io/mauriciopoppe/csi-sidecars-aio-poc
+# HW_ARCH=$(uname -m)
+# if [[ "${HW_ARCH}" == "aarch64" ]]; then
+#   export CSI_PROW_BUILD_PLATFORMS="linux arm64 arm64"
+# elif [[ "${HW_ARCH}" == "x86_64" ]]; then
+#   export CSI_PROW_BUILD_PLATFORMS="linux amd64 amd64"
+# else
+#   echo "Unsupported hardware arch $HW_ARCH"
+#   exit 1
+# fi
+# make container GOFLAGS_VENDOR="-mod=vendor" BUILD_PLATFORMS=${CSI_PROW_BUILD_PLATFORMS}
