@@ -26,6 +26,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/kubernetes-csi/csi-sidecars/cmd/csi-sidecars/config"
+	attacherconfig "github.com/kubernetes-csi/csi-sidecars/pkg/attacher/cmd/csi-attacher/config"
 	flag "github.com/spf13/pflag"
 	"sigs.k8s.io/sig-storage-lib-external-provisioner/v11/controller"
 
@@ -61,13 +62,12 @@ var (
 	httpEndpoint                *string
 	metricsAddress              *string
 	metricsPath                 *string
+	maxGRPCLogLength            *int
+	maxEntries                  *int
+	reconcileSync               *time.Duration
 )
 
 var (
-	// Attacher specific
-	maxEntries       = flag.Int("attacher-max-entries", 0, "Max entries per each page in volume lister call, 0 means no limit.")
-	reconcileSync    = flag.Duration("attacher-reconcile-sync", 1*time.Minute, "Resync interval of the VolumeAttachment reconciler.")
-	maxGRPCLogLength = flag.Int("attacher-max-grpc-log-length", -1, "The maximum amount of characters logged for every grpc responses. Defaults to no limit")
 
 	// Provisioner specific
 	kubeAPICapacityQPS             = flag.Float32("provisioner-kube-api-capacity-qps", 1, "QPS to use for storage capacity updates while communicating with the kubernetes apiserver. Defaults to 1.0.")
@@ -132,6 +132,10 @@ func copyFlagsFromConfigToGlobalVars() {
 	defaultFSType = &config.Configuration.AttacherConfiguration.DefaultFSType
 	workerThreads = &config.Configuration.AttacherConfiguration.WorkerThreads
 	workers = &config.Configuration.AttacherConfiguration.WorkerThreads
+	maxGRPCLogLength = &config.Configuration.AttacherConfiguration.MaxGRPCLogLength
+	maxEntries = &config.Configuration.AttacherConfiguration.MaxEntries
+	reconcileSync = &config.Configuration.AttacherConfiguration.ReconcileSync
+
 	// TODO: define if timeout should be global or not
 	timeout = &config.Configuration.AttacherConfiguration.Timeout
 	operationTimeout = &config.Configuration.AttacherConfiguration.Timeout
@@ -143,15 +147,15 @@ func main() {
 
 	klog.InitFlags(nil)
 	config.RegisterCommonFlags(goflag.CommandLine)
-	config.RegisterAttacherFlags(goflag.CommandLine)
+	attacherconfig.RegisterAttacherFlagsWithPrefix(goflag.CommandLine, &config.Configuration.AttacherConfiguration)
 	flag.CommandLine.AddGoFlagSet(goflag.CommandLine)
 	flag.Set("logtostderr", "true")
 
 	// Resizer specific
-	//fg := featuregate.NewFeatureGate()
-	//logsapi.AddFeatureGates(fg)
-	//c := logsapi.NewLoggingConfiguration()
-	//logsapi.AddGoFlags(c, goflag.CommandLine)
+	// fg := featuregate.NewFeatureGate()
+	// logsapi.AddFeatureGates(fg)
+	// c := logsapi.NewLoggingConfiguration()
+	// logsapi.AddGoFlags(c, goflag.CommandLine)
 	logs.InitLogs()
 
 	flag.Parse()
