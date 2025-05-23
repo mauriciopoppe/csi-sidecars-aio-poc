@@ -43,7 +43,7 @@ for i in attacher,master provisioner,master resizer,master; do
     (cd pkg/${SIDECAR} && git checkout ${SIDECAR_HASH})
 
     cat pkg/${SIDECAR}/go.mod | grep "	" | grep -v "indirect" >> tmp/gomod-require.txt
-    cat pkg/${SIDECAR}/go.mod | { grep "replace " || [[ $? == 1 ]] } >> tmp/gomod-replace.txt
+    cat pkg/${SIDECAR}/go.mod | { grep "replace " || [[ $? == 1 ]]; } >> tmp/gomod-replace.txt
 
     ${TRASH} pkg/${SIDECAR}/.git
     ${TRASH} pkg/${SIDECAR}/.github
