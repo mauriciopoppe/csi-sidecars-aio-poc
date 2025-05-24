@@ -63,4 +63,3 @@ func RegisterCommonFlags(flags *flag.FlagSet) {
 
 	flags.StringVar(&Configuration.Controllers, "controllers", "", "A comma-separated list of controllers to enable. The possible values are: [resizer,attacher,provisioner]")
 }
-

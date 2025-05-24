@@ -2,7 +2,7 @@
 set -euxo pipefail
 
 if [[ $(uname) != "Linux" ]]; then
-  echo "This script only works in Linux arm64/amd64, yours is `uname`"
+  echo "This script only works in Linux arm64/amd64, yours is $(uname)"
   exit 1
 fi
 
@@ -34,16 +34,15 @@ symlink_from_hack_to_root() {
   ln -s $PWD/$file $PWD/$file_without_hack
 }
 
-
 # loop params: [repository,branch]
 for i in attacher,master provisioner,master resizer,master; do
-  IFS=',' read SIDECAR SIDECAR_HASH <<< "${i}"
+  IFS=',' read SIDECAR SIDECAR_HASH <<<"${i}"
   if [[ ! -d pkg/${SIDECAR} ]]; then
     git clone --depth 1 https://github.com/kubernetes-csi/external-${SIDECAR} pkg/${SIDECAR}
     (cd pkg/${SIDECAR} && git checkout ${SIDECAR_HASH})
 
-    cat pkg/${SIDECAR}/go.mod | grep "	" | grep -v "indirect" >> tmp/gomod-require.txt
-    cat pkg/${SIDECAR}/go.mod | { grep "replace " || [[ $? == 1 ]] } >> tmp/gomod-replace.txt
+    cat pkg/${SIDECAR}/go.mod | grep "	" | grep -v "indirect" >>tmp/gomod-require.txt
+    cat pkg/${SIDECAR}/go.mod | { grep "replace " || [[ $? == 1 ]]; } >>tmp/gomod-replace.txt
 
     ${TRASH} pkg/${SIDECAR}/.git
     ${TRASH} pkg/${SIDECAR}/.github
@@ -58,10 +57,16 @@ for i in attacher,master provisioner,master resizer,master; do
     ${TRASH} pkg/${SIDECAR}/OWNER_ALIASES
     ${TRASH} pkg/${SIDECAR}/Makefile
 
-    (cd pkg/${SIDECAR}; find . -type f -exec grep -q "github.com/kubernetes-csi/external-${SIDECAR}/" --files-with-matches {} \; -print)
+    (
+      cd pkg/${SIDECAR}
+      find . -type f -exec grep -q "github.com/kubernetes-csi/external-${SIDECAR}/" --files-with-matches {} \; -print
+    )
 
-    (cd pkg/${SIDECAR}; find . -type f -exec grep -q "github.com/kubernetes-csi/external-${SIDECAR}/" --files-with-matches {} \; -print | \
-	    xargs sed -E -i".bak" "s%github.com/kubernetes-csi/external-${SIDECAR}/(v[0-9]+/)?%github.com/kubernetes-csi/csi-sidecars/pkg/${SIDECAR}/%g")
+    (
+      cd pkg/${SIDECAR}
+      find . -type f -exec grep -q "github.com/kubernetes-csi/external-${SIDECAR}/" --files-with-matches {} \; -print |
+        xargs sed -E -i".bak" "s%github.com/kubernetes-csi/external-${SIDECAR}/(v[0-9]+/)?%github.com/kubernetes-csi/csi-sidecars/pkg/${SIDECAR}/%g"
+    )
   fi
 
   for FILE in pkg/${SIDECAR}/cmd/csi-${SIDECAR}/*.go; do
@@ -90,15 +95,21 @@ for i in attacher,master provisioner,master resizer,master; do
     sed -i".bak" '/utilfeature.DefaultMutableFeatureGate/,/}/d' "${NEW_FILE}"
     sed -i".bak" '/flag.CommandLine.AddGoFlagSet/d' "${NEW_FILE}"
 
+    # TODO: handle setting the automaxproc flag from each sidecar>
+    # In the meantime remove setting the flag and handle it in the AIO sidecar.
+    # https://github.com/mauriciopoppe/csi-sidecars-aio-poc/issues/14
+    sed -i".bak" '/standardflags.AddAutomaxprocs/d' "${NEW_FILE}"
+
     # Dead imports
     sed -i".bak" '/goflag/d' "${NEW_FILE}"
     sed -i".bak" '/flag"/d' "${NEW_FILE}"
     sed -i".bak" '/featuregate"/d' "${NEW_FILE}"
     sed -i".bak" '/logs/d' "${NEW_FILE}"
+    sed -i".bak" '/csi-lib-utils\/standardflags/d' "${NEW_FILE}"
+
     if [ "${SIDECAR}" = "resizer" ]; then
       sed -i".bak" '/strings/d' "${NEW_FILE}"
     fi
-
   done
 
   # This is a temporary change that tests what it'd be to make a refactor
@@ -123,12 +134,12 @@ go 1.23.1
 
 require (
 EOF
-cat tmp/gomod-require.txt | sort | uniq >> go.mod
+cat tmp/gomod-require.txt | sort | uniq >>go.mod
 cat <<EOF >>go.mod
 )
 
 EOF
-cat tmp/gomod-replace.txt | sort | uniq >> go.mod
+cat tmp/gomod-replace.txt | sort | uniq >>go.mod
 go mod tidy
 
 cat <<EOF >Makefile
@@ -148,7 +159,7 @@ if [[ ! -d ${csi_lib_utils} ]]; then
   ${TRASH} ${csi_lib_utils}/release-tools
 
   if ! grep -q "./staging/src/github.com/kubernetes-csi/csi-lib-utils" go.mod; then
-    echo "replace github.com/kubernetes-csi/csi-lib-utils => ./staging/src/github.com/kubernetes-csi/csi-lib-utils" >> go.mod
+    echo "replace github.com/kubernetes-csi/csi-lib-utils => ./staging/src/github.com/kubernetes-csi/csi-lib-utils" >>go.mod
   fi
 fi
 
@@ -166,7 +177,7 @@ make build
 go build -a -ldflags ' -X main.version=foo -extldflags "-static"' -o ./bin/csi-attacher ./pkg/attacher/cmd/csi-attacher
 ./bin/csi-attacher --help || true
 
-cat <<'EOF' > Dockerfile
+cat <<'EOF' >Dockerfile
 FROM gcr.io/distroless/static:latest
 LABEL maintainers="Kubernetes Authors"
 LABEL description="CSI Sidecars"

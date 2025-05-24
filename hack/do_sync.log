@@ -86,10 +86,12 @@ Your branch is up to date with 'origin/master'.
 + sed -i.bak /logtostderr/d cmd/csi-sidecars/attacher_main.go
 + sed -i.bak '/utilfeature.DefaultMutableFeatureGate/,/}/d' cmd/csi-sidecars/attacher_main.go
 + sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/attacher_main.go
++ sed -i.bak /standardflags.AddAutomaxprocs/d cmd/csi-sidecars/attacher_main.go
 + sed -i.bak /goflag/d cmd/csi-sidecars/attacher_main.go
 + sed -i.bak '/flag"/d' cmd/csi-sidecars/attacher_main.go
 + sed -i.bak '/featuregate"/d' cmd/csi-sidecars/attacher_main.go
 + sed -i.bak /logs/d cmd/csi-sidecars/attacher_main.go
++ sed -i.bak '/csi-lib-utils\/standardflags/d' cmd/csi-sidecars/attacher_main.go
 + '[' attacher = resizer ']'
 + [[ attacher == \a\t\t\a\c\h\e\r ]]
 + rm pkg/attacher/cmd/csi-attacher/main.go
@@ -180,10 +182,12 @@ Your branch is up to date with 'origin/master'.
 + sed -i.bak /logtostderr/d cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak '/utilfeature.DefaultMutableFeatureGate/,/}/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak /standardflags.AddAutomaxprocs/d cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak /goflag/d cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak '/flag"/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak '/featuregate"/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak /logs/d cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak '/csi-lib-utils\/standardflags/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
 + '[' provisioner = resizer ']'
 + for FILE in pkg/${SIDECAR}/cmd/csi-${SIDECAR}/*.go
 ++ basename pkg/provisioner/cmd/csi-provisioner/util.go
@@ -207,10 +211,12 @@ Your branch is up to date with 'origin/master'.
 + sed -i.bak /logtostderr/d cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak '/utilfeature.DefaultMutableFeatureGate/,/}/d' cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak /standardflags.AddAutomaxprocs/d cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak /goflag/d cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak '/flag"/d' cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak '/featuregate"/d' cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak /logs/d cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak '/csi-lib-utils\/standardflags/d' cmd/csi-sidecars/provisioner_util.go
 + '[' provisioner = resizer ']'
 + for FILE in pkg/${SIDECAR}/cmd/csi-${SIDECAR}/*.go
 ++ basename pkg/provisioner/cmd/csi-provisioner/util_test.go
@@ -234,10 +240,12 @@ Your branch is up to date with 'origin/master'.
 + sed -i.bak /logtostderr/d cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak '/utilfeature.DefaultMutableFeatureGate/,/}/d' cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak /standardflags.AddAutomaxprocs/d cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak /goflag/d cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak '/flag"/d' cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak '/featuregate"/d' cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak /logs/d cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak '/csi-lib-utils\/standardflags/d' cmd/csi-sidecars/provisioner_util_test.go
 + '[' provisioner = resizer ']'
 + [[ provisioner == \a\t\t\a\c\h\e\r ]]
 + for i in attacher,master provisioner,master resizer,master
@@ -329,10 +337,12 @@ Your branch is up to date with 'origin/master'.
 + sed -i.bak /logtostderr/d cmd/csi-sidecars/resizer_main.go
 + sed -i.bak '/utilfeature.DefaultMutableFeatureGate/,/}/d' cmd/csi-sidecars/resizer_main.go
 + sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/resizer_main.go
++ sed -i.bak /standardflags.AddAutomaxprocs/d cmd/csi-sidecars/resizer_main.go
 + sed -i.bak /goflag/d cmd/csi-sidecars/resizer_main.go
 + sed -i.bak '/flag"/d' cmd/csi-sidecars/resizer_main.go
 + sed -i.bak '/featuregate"/d' cmd/csi-sidecars/resizer_main.go
 + sed -i.bak /logs/d cmd/csi-sidecars/resizer_main.go
++ sed -i.bak '/csi-lib-utils\/standardflags/d' cmd/csi-sidecars/resizer_main.go
 + '[' resizer = resizer ']'
 + sed -i.bak /strings/d cmd/csi-sidecars/resizer_main.go
 + [[ resizer == \a\t\t\a\c\h\e\r ]]
@@ -404,7 +414,7 @@ export os_arch_seen="" && echo '' | tr ';' '\n' | while read -r os arch buildx_p
 	if ! [ ${#os_arch_seen_pre} = ${#os_arch_seen} ]; then \
 		continue; \
 	fi; \
-	if ! (set -x; cd ./cmd/csi-sidecars && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build  -a -ldflags ' -X main.version=cce1dbc9976c7b93985cab9ec8bf8da6b0025feb -extldflags "-static"' -o "/home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars$suffix" .); then \
+	if ! (set -x; cd ./cmd/csi-sidecars && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build  -a -ldflags ' -X main.version=f4bfe4de25a20af969687d311cfba3455e82fd5f -extldflags "-static"' -o "/home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars$suffix" .); then \
 		echo "Building csi-sidecars for GOOS=$os GOARCH=$arch failed, see error(s) above."; \
 		exit 1; \
 	fi; \
@@ -414,7 +424,7 @@ done
 + CGO_ENABLED=0
 + GOOS=
 + GOARCH=
-+ go build -a -ldflags ' -X main.version=cce1dbc9976c7b93985cab9ec8bf8da6b0025feb -extldflags "-static"' -o /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars .
++ go build -a -ldflags ' -X main.version=f4bfe4de25a20af969687d311cfba3455e82fd5f -extldflags "-static"' -o /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars .
 + ./bin/csi-sidecars --help
 Usage of ./bin/csi-sidecars:
       --add_dir_header                                    If true, adds the file directory to the header of the log messages
@@ -425,6 +435,7 @@ Usage of ./bin/csi-sidecars:
       --attacher-reconcile-sync duration                  Resync interval of the VolumeAttachment reconciler. (default 1m0s)
       --attacher-timeout duration                         Timeout for waiting for attaching or detaching the volume. (default 15s)
       --attacher-worker-threads int                       Number of worker threads per sidecar (default 10)
+      --automaxprocs boolFunc[=true]                      automatically set GOMAXPROCS to match Linux container CPU quota
       --controllers string                                A comma-separated list of controllers to enable. The possible values are: [resizer,attacher,provisioner]
       --csi-address string                                The gRPC endpoint for Target CSI Volume. (default "/run/csi/socket")
       --feature-gates mapStringBool                       A set of key=value pairs that describe feature gates for alpha/experimental features. Options are:
