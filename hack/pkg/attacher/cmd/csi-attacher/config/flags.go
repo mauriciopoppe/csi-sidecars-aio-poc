@@ -6,12 +6,12 @@ import (
 )
 
 type AttacherConfiguration struct {
-	MaxEntries      int
-	ReconcileSync   time.Duration
+	MaxEntries       int
+	ReconcileSync    time.Duration
 	MaxGRPCLogLength int
-	WorkerThreads   int
-	DefaultFSType   string
-	Timeout         time.Duration
+	WorkerThreads    int
+	DefaultFSType    string
+	Timeout          time.Duration
 }
 
 func registerAttacherFlags(flags *flag.FlagSet, configuration *AttacherConfiguration, prefix string) {
