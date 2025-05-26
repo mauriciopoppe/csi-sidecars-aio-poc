@@ -87,6 +87,7 @@ for i in attacher,master provisioner,master resizer,master; do
     sed -i".bak" '/Options are:/d' "${NEW_FILE}"
     sed -i".bak" '/logsapi.NewLoggingConfiguration/d' "${NEW_FILE}"
     sed -i".bak" '/logsapi.AddGoFlags/d' "${NEW_FILE}"
+    sed -i".bak" '/logsapi.AddFlags/d' "${NEW_FILE}"
     sed -i".bak" '/logs.InitLogs/d' "${NEW_FILE}"
     sed -i".bak" '/flag.Parse/d' "${NEW_FILE}"
     sed -i".bak" '/logsapi.ValidateAndApply/,/}/d' "${NEW_FILE}"
