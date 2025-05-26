@@ -25,6 +25,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
+	logsapi "k8s.io/component-base/logs/api/v1"
 	"github.com/kubernetes-csi/csi-lib-utils/standardflags"
 	"github.com/kubernetes-csi/csi-sidecars/cmd/csi-sidecars/config"
 	attacherconfig "github.com/kubernetes-csi/csi-sidecars/pkg/attacher/cmd/csi-attacher/config"
@@ -150,6 +151,8 @@ func main() {
 	config.RegisterCommonFlags(goflag.CommandLine)
 	attacherconfig.RegisterAttacherFlagsWithPrefix(goflag.CommandLine, &config.Configuration.AttacherConfiguration)
 	standardflags.AddAutomaxprocs(klog.Infof)
+	c := logsapi.NewLoggingConfiguration()
+	logsapi.AddFlags(c, flag.CommandLine)
 	flag.CommandLine.AddGoFlagSet(goflag.CommandLine)
 	flag.Set("logtostderr", "true")
 
