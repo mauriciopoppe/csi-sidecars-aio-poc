@@ -69,8 +69,8 @@ var (
 	// workerThreads = flag.Uint("worker-threads", 10, "Number of attacher worker threads")
 	// maxEntries = flag.Int("max-entries", 0, "Max entries per each page in volume lister call, 0 means no limit.")
 
-	retryIntervalStart = flag.Duration("retry-interval-start", time.Second, "Initial retry interval of failed create volume or deletion. It doubles with each failure, up to retry-interval-max.")
-	retryIntervalMax   = flag.Duration("retry-interval-max", 5*time.Minute, "Maximum retry interval of failed create volume or deletion.")
+	// retryIntervalStart = flag.Duration("retry-interval-start", time.Second, "Initial retry interval of failed create volume or deletion. It doubles with each failure, up to retry-interval-max.")
+	// retryIntervalMax   = flag.Duration("retry-interval-max", 5*time.Minute, "Maximum retry interval of failed create volume or deletion.")
 
 	enableLeaderElection        = flag.Bool("leader-election", false, "Enable leader election.")
 	leaderElectionNamespace     = flag.String("leader-election-namespace", "", "Namespace where the leader election resource lives. Defaults to the pod namespace if not set.")
@@ -114,6 +114,8 @@ func main() {
 	reconcileSync := &attacherConfiguration.ReconcileSync
 	maxGRPCLogLength := &attacherConfiguration.MaxGRPCLogLength
 	maxEntries := &attacherConfiguration.MaxEntries
+	retryIntervalStart := &attacherConfiguration.RetryIntervalStart
+	retryIntervalMax := &attacherConfiguration.RetryIntervalMax
 
 	logger := klog.Background()
 	if err := logsapi.ValidateAndApply(c, fg); err != nil {

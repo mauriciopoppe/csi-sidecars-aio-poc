@@ -6,12 +6,14 @@ import (
 )
 
 type AttacherConfiguration struct {
-	MaxEntries       int
-	ReconcileSync    time.Duration
-	MaxGRPCLogLength int
-	WorkerThreads    int
-	DefaultFSType    string
-	Timeout          time.Duration
+	MaxEntries         int
+	ReconcileSync      time.Duration
+	MaxGRPCLogLength   int
+	WorkerThreads      int
+	DefaultFSType      string
+	Timeout            time.Duration
+	RetryIntervalStart time.Duration
+	RetryIntervalMax   time.Duration
 }
 
 func registerAttacherFlags(flags *flag.FlagSet, configuration *AttacherConfiguration, prefix string) {
@@ -21,6 +23,8 @@ func registerAttacherFlags(flags *flag.FlagSet, configuration *AttacherConfigura
 	flags.IntVar(&configuration.WorkerThreads, prefix+"worker-threads", 10, "Number of worker threads per sidecar")
 	flags.StringVar(&configuration.DefaultFSType, prefix+"default-fstype", "", "The default filesystem type of the volume to use.")
 	flags.DurationVar(&configuration.Timeout, prefix+"timeout", 15*time.Second, "Timeout for waiting for attaching or detaching the volume.")
+	flags.DurationVar(&configuration.RetryIntervalStart, prefix+"retry-interval-start", time.Second, "Initial retry interval of failed create volume or deletion. It doubles with each failure, up to retry-interval-max.")
+	flags.DurationVar(&configuration.RetryIntervalMax, prefix+"retry-interval-max", 5*time.Minute, "Maximum retry interval of failed create volume or deletion.")
 }
 
 func RegisterAttacherFlags(flags *flag.FlagSet, configuration *AttacherConfiguration) {
