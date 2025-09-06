@@ -26,7 +26,9 @@ fi
 
 mkdir -p tmp pkg cmd/csi-sidecars/ staging/src/github.com/kubernetes-csi/
 
-symlink_from_hack_to_root() {
+# symlink_from_root_to_hack creates a simlink from the project root to hack.
+# e.g. cmd/csi-sidecars/main.go -> hack/cmd/csi-sidecars/main.go
+symlink_from_root_to_hack() {
   file="$1"
   # strip hack/ prefix
   file_without_hack="${file#hack/}"
@@ -40,9 +42,14 @@ for i in attacher,master provisioner,master resizer,master; do
   if [[ ! -d pkg/${SIDECAR} ]]; then
     git clone --depth 1 https://github.com/kubernetes-csi/external-${SIDECAR} pkg/${SIDECAR}
     (cd pkg/${SIDECAR} && git checkout ${SIDECAR_HASH})
+    (cd pkg/${SIDECAR} && git rev-parse --short HEAD)
 
     cat pkg/${SIDECAR}/go.mod | grep "	" | grep -v "indirect" >>tmp/gomod-require.txt
     cat pkg/${SIDECAR}/go.mod | { grep "replace " || [[ $? == 1 ]]; } >>tmp/gomod-replace.txt
+
+    # Checks for drifts in k8s.io/api, drifts in core dependencies are sometimes impossible to solve
+    # e.g. attacher requiring k8s v0.34 and provisioner requiring v0.33.
+    cat pkg/${SIDECAR}/go.mod | grep "replace k8s.io/api =>" >>tmp/gomod-k8sapi.txt
 
     ${TRASH} pkg/${SIDECAR}/.git
     ${TRASH} pkg/${SIDECAR}/.github
@@ -118,14 +125,25 @@ for i in attacher,master provisioner,master resizer,master; do
   # later when building the individual sidecar.
   if [[ "${SIDECAR}" == "attacher" ]]; then
     rm pkg/attacher/cmd/csi-attacher/main.go
-    symlink_from_hack_to_root hack/pkg/attacher/cmd/csi-attacher/main.go
+    symlink_from_root_to_hack hack/pkg/attacher/cmd/csi-attacher/main.go
   fi
 done
 
-# Use our customized cmd/
-symlink_from_hack_to_root hack/cmd/csi-sidecars/main.go
-symlink_from_hack_to_root hack/cmd/csi-sidecars/config/flags.go
-symlink_from_hack_to_root hack/pkg/attacher/cmd/csi-attacher/config/flags.go
+# Sanity checks
+echo "Sanity checks"
+
+echo "Check that the k8s.io dependencies match"
+if [[ $(cat tmp/gomod-k8sapi.txt | sort | uniq | wc -l) -gt 1 ]]; then
+  echo "There are multiple k8s.io versions as dependencies from sidecars!"
+  echo "Check the go.mod of each sidecar and verify that the k8s.io dependencies match"
+  cat tmp/gomod-k8sapi.txt
+  exit 1
+fi
+
+# Use files in hack/ in the project root by creating symlinks from the project root -> hack
+symlink_from_root_to_hack hack/cmd/csi-sidecars/main.go
+symlink_from_root_to_hack hack/cmd/csi-sidecars/config/flags.go
+symlink_from_root_to_hack hack/pkg/attacher/cmd/csi-attacher/config/flags.go
 
 # Create merged go.mod
 cat <<EOF >go.mod
