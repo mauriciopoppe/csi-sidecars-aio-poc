@@ -6,6 +6,9 @@ if [[ $(uname) != "Linux" ]]; then
   exit 1
 fi
 
+# Set to true to skip the sanity checks.
+SKIP_SANITY_CHECK="${SKIP_SANITY_CHECK:-}"
+
 DRY_RUN="${DRY_RUN:-false}"
 # cond_exec executes arguments if DRY_RUN=true, otherwise it just echo them
 cond_exec() {
@@ -45,11 +48,14 @@ for i in attacher,master provisioner,master resizer,master; do
     (cd pkg/${SIDECAR} && git rev-parse --short HEAD)
 
     cat pkg/${SIDECAR}/go.mod | grep "	" | grep -v "indirect" >>tmp/gomod-require.txt
-    cat pkg/${SIDECAR}/go.mod | { grep "replace " || [[ $? == 1 ]]; } >>tmp/gomod-replace.txt
+
+    # NOTE: the sed command is temporary while provisioner adopts a more recent version of k8s, check #18 for more info.
+    cat pkg/${SIDECAR}/go.mod | { grep "replace " || [[ $? == 1 ]]; } | sed 's/v0.34/v0.33/g' >>tmp/gomod-replace.txt
 
     # Checks for drifts in k8s.io/api, drifts in core dependencies are sometimes impossible to solve
     # e.g. attacher requiring k8s v0.34 and provisioner requiring v0.33.
-    cat pkg/${SIDECAR}/go.mod | grep "replace k8s.io/api =>" >>tmp/gomod-k8sapi.txt
+    # NOTE: the sed command is temporary while provisioner adopts a more recent version of k8s, check #18 for more info.
+    cat pkg/${SIDECAR}/go.mod | grep "replace k8s.io/api =>" | sed 's/v0.34/v0.33/g' >>tmp/gomod-k8sapi.txt
 
     ${TRASH} pkg/${SIDECAR}/.git
     ${TRASH} pkg/${SIDECAR}/.github
@@ -118,6 +124,9 @@ for i in attacher,master provisioner,master resizer,master; do
     if [ "${SIDECAR}" = "resizer" ]; then
       sed -i".bak" '/strings/d' "${NEW_FILE}"
     fi
+    if [ "${SIDECAR}" = "attacher" ]; then
+      sed -i".bak" '/strings/d' "${NEW_FILE}"
+    fi
   done
 
   # This is a temporary change that tests what it'd be to make a refactor
@@ -133,7 +142,7 @@ done
 echo "Sanity checks"
 
 echo "Check that the k8s.io dependencies match"
-if [[ $(cat tmp/gomod-k8sapi.txt | sort | uniq | wc -l) -gt 1 ]]; then
+if [[ ${SKIP_SANITY_CHECK} != "true" ]] && [[ $(cat tmp/gomod-k8sapi.txt | sort | uniq | wc -l) -gt 1 ]]; then
   echo "There are multiple k8s.io versions as dependencies from sidecars!"
   echo "Check the go.mod of each sidecar and verify that the k8s.io dependencies match"
   cat tmp/gomod-k8sapi.txt
