@@ -22,14 +22,20 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
+	"sync"
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apiserver/pkg/server"
+
+	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/workqueue"
+	utilflag "k8s.io/component-base/cli/flag"
 	"k8s.io/component-base/featuregate"
 	"k8s.io/component-base/logs"
 	logsapi "k8s.io/component-base/logs/api/v1"
@@ -45,9 +51,12 @@ import (
 	"github.com/kubernetes-csi/csi-lib-utils/leaderelection"
 	"github.com/kubernetes-csi/csi-lib-utils/metrics"
 	"github.com/kubernetes-csi/csi-lib-utils/rpc"
+	"github.com/kubernetes-csi/csi-lib-utils/standardflags"
+
 	attacherconfiguration "github.com/kubernetes-csi/csi-sidecars/pkg/attacher/cmd/csi-attacher/config"
 	"github.com/kubernetes-csi/csi-sidecars/pkg/attacher/pkg/attacher"
 	"github.com/kubernetes-csi/csi-sidecars/pkg/attacher/pkg/controller"
+	"github.com/kubernetes-csi/csi-sidecars/pkg/attacher/pkg/features"
 	"google.golang.org/grpc"
 )
 
@@ -90,11 +99,15 @@ var (
 	kubeAPIBurst = flag.Int("kube-api-burst", 10, "Burst to use while communicating with the kubernetes apiserver. Defaults to 10.")
 
 	// maxGRPCLogLength = flag.Int("max-grpc-log-length", -1, "The maximum amount of characters logged for every grpc responses. Defaults to no limit")
+	featureGates map[string]bool
 )
 
 var version = "unknown"
 
 func main() {
+	flag.Var(utilflag.NewMapStringBool(&featureGates), "feature-gates", "A set of key=value pairs that describe feature gates for alpha/experimental features. "+
+		"Options are:\n"+strings.Join(utilfeature.DefaultFeatureGate.KnownFeatures(), "\n"))
+
 	fg := featuregate.NewFeatureGate()
 	logsapi.AddFeatureGates(fg)
 	c := logsapi.NewLoggingConfiguration()
@@ -102,6 +115,7 @@ func main() {
 	attacherconfiguration.RegisterAttacherFlags(flag.CommandLine, &attacherConfiguration)
 	logsapi.AddGoFlags(c, flag.CommandLine)
 	logs.InitLogs()
+	standardflags.AddAutomaxprocs(klog.Infof)
 	flag.Parse()
 
 	// override(mauriciopoppe): I commented the flag definitions above and instead
@@ -120,6 +134,11 @@ func main() {
 	logger := klog.Background()
 	if err := logsapi.ValidateAndApply(c, fg); err != nil {
 		logger.Error(err, "LoggingConfiguration is invalid")
+		klog.FlushAndExit(klog.ExitFlushTimeout, 1)
+	}
+
+	if err := utilfeature.DefaultMutableFeatureGate.SetFromMap(featureGates); err != nil {
+		logger.Error(err, "failed to store flag gates", "featureGates", featureGates)
 		klog.FlushAndExit(klog.ExitFlushTimeout, 1)
 	}
 
@@ -290,16 +309,45 @@ func main() {
 		handler,
 		factory.Storage().V1().VolumeAttachments(),
 		factory.Core().V1().PersistentVolumes(),
-		workqueue.NewItemExponentialFailureRateLimiter(*retryIntervalStart, *retryIntervalMax),
-		workqueue.NewItemExponentialFailureRateLimiter(*retryIntervalStart, *retryIntervalMax),
+		workqueue.NewTypedItemExponentialFailureRateLimiter[string](*retryIntervalStart, *retryIntervalMax),
+		workqueue.NewTypedItemExponentialFailureRateLimiter[string](*retryIntervalStart, *retryIntervalMax),
 		supportsListVolumesPublishedNodes,
 		*reconcileSync,
 	)
+	// handle SIGTERM and SIGINT by cancelling the context.
+	var (
+		terminate       func()          // called when all controllers are finished
+		controllerCtx   context.Context // shuts down all controllers on a signal
+		shutdownHandler <-chan struct{} // called when the signal is received
+	)
+
+	if utilfeature.DefaultFeatureGate.Enabled(features.ReleaseLeaderElectionOnExit) {
+		ctx, terminate = context.WithCancel(ctx) // shuts down the whole process, incl. leader election
+		var cancelControllerCtx context.CancelFunc
+		controllerCtx, cancelControllerCtx = context.WithCancel(ctx)
+		shutdownHandler = server.SetupSignalHandler()
+
+		defer terminate()
+
+		go func() {
+			defer cancelControllerCtx()
+			<-shutdownHandler
+			logger.Info("Received SIGTERM or SIGINT signal, shutting down controller.")
+		}()
+	}
 
 	run := func(ctx context.Context) {
-		stopCh := ctx.Done()
-		factory.Start(stopCh)
-		ctrl.Run(ctx, int(*workerThreads))
+		if utilfeature.DefaultFeatureGate.Enabled(features.ReleaseLeaderElectionOnExit) {
+			var wg sync.WaitGroup
+			factory.Start(shutdownHandler)
+			ctrl.Run(controllerCtx, int(*workerThreads), &wg)
+			wg.Wait()
+			terminate()
+		} else {
+			stopCh := ctx.Done()
+			factory.Start(stopCh)
+			ctrl.Run(ctx, int(*workerThreads), nil)
+		}
 	}
 
 	if !*enableLeaderElection {
@@ -328,6 +376,10 @@ func main() {
 		le.WithLeaseDuration(*leaderElectionLeaseDuration)
 		le.WithRenewDeadline(*leaderElectionRenewDeadline)
 		le.WithRetryPeriod(*leaderElectionRetryPeriod)
+		if utilfeature.DefaultFeatureGate.Enabled(features.ReleaseLeaderElectionOnExit) {
+			le.WithReleaseOnCancel(true)
+			le.WithContext(ctx)
+		}
 
 		if err := le.Run(); err != nil {
 			logger.Error(err, "Failed to initialize leader election")
