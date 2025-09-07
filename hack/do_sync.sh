@@ -40,47 +40,15 @@ symlink_from_root_to_hack() {
 }
 
 # loop params: [repository,branch]
-# for i in attacher,master provisioner,master resizer,master; do
-for i in attacher,master; do
+for i in attacher,master provisioner,master resizer,master; do
   IFS=',' read SIDECAR SIDECAR_HASH <<<"${i}"
   if [[ ! -d pkg/${SIDECAR} ]]; then
-    if [[ "${SIDECAR}" == "attacher" ]]; then
-      mkdir -p pkg/attacher
-      (
-        cd pkg/attacher
-        git init
-        for commit in $(ls ../../hack/patches/attacher/*.patch); do
-          commit_hash=$(head -n 1 $commit | cut -d' ' -f2)
-          patch_number=$(grep -m 1 PATCH $commit | head -n 1 | sed 's/.*\[PATCH \([0-9]\+\)\/.*/\1/')
-          if [[ -n $(grep $commit_hash ../../hack/csi-release-tools-hashes.txt) ]]; then
-            echo "skipping commit $commit_hash because it's for release-tools"
-            # file=$(basename $commit)
-            # cat $commit | sed 's% a/% a/release-tools/%g' | sed 's% b/% b/release-tools/%g' >../../hack/patches/attacher_fixed/$file
-            # git am --3way ../../hack/patches/attacher_fixed/$file
-          elif grep -q git-subtree-dir $commit; then
-            echo "skipping commit $commit_hash because it's for release-tools"
-          elif [[ $patch_number =~ (269|270) ]]; then
-            echo "skipping commit $commit_hash because it was already seen!"
-          elif [[ $patch_number =~ (192|195) ]]; then
-            git am --3way $commit
-          elif [[ $patch_number =~ (233|262|264|307) ]]; then
-            echo "special commit apply"
-            go mod vendor
-            (git add vendor/modules.txt && git commit -m "fixup") || true
-            git am $commit
-            # elif [[ $patch_number =~ (502|506|509|511|512|514|515|516|517|518|519|520|521|522|524|525|526) ]]; then
-            # echo "special commit skip!"
-          else
-            git am $commit
-          fi
-        done
-      )
-      exit 1
-    else
-      git clone --depth 1 https://github.com/kubernetes-csi/external-${SIDECAR} pkg/${SIDECAR}
-      (cd pkg/${SIDECAR} && git checkout ${SIDECAR_HASH})
-      (cd pkg/${SIDECAR} && git rev-parse --short HEAD)
-    fi
+    git clone --depth 1 https://github.com/kubernetes-csi/external-${SIDECAR} pkg/${SIDECAR}
+    (
+      cd pkg/${SIDECAR}
+      git checkout ${SIDECAR_HASH}
+      git rev-parse --short HEAD
+    )
 
     cat pkg/${SIDECAR}/go.mod | grep "	" | grep -v "indirect" >>tmp/gomod-require.txt
 
