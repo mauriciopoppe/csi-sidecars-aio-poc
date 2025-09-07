@@ -22,6 +22,13 @@ After cloning the repo, run the following commands to start from scratch:
 
 Logs: [./hack/do_sync.log](./hack/do_sync.log)
 
+We're trying out cloning existing repos preserving their commit history,
+the following script implements it:
+
+```bash
+./hack/do_cleanup.sh && ./hack/do_clone_commit_history.sh
+```
+
 ### Building the project using CI
 
 There's a presubmit job that runs on every PR using Github Actions,
