@@ -7,12 +7,11 @@ if [[ -z $VIRTUAL_ENV ]]; then
   exit 1
 fi
 
-if [[ -z $(git filter-repo --version) ]]; then
+if ! command -v git-filter-repo >/dev/null; then
   echo "git-filter-repo is required, installing it..."
   pip install git-filter-repo
 fi
 
-trash tmp
 if [[ -d tmp ]]; then
   echo "tmp directory exists, remove it to start from scratch"
   exit 1
