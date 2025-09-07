@@ -50,39 +50,28 @@ for i in attacher,master; do
         cd pkg/attacher
         git init
         for commit in $(ls ../../hack/patches/attacher/*.patch); do
+          commit_hash=$(head -n 1 $commit | cut -d' ' -f2)
           patch_number=$(grep -m 1 PATCH $commit | head -n 1 | sed 's/.*\[PATCH \([0-9]\+\)\/.*/\1/')
-          method=$(
-            python3 - "$patch_number" <<EOF
-import sys
-
-release_tool_commits = [
-  102, 103, 104, 106, 107, 108, 110, 111, 112, 113, 114,
-  115, 116, 117, 127, 132, 133, 135, 138, 139, 140,
-  142, 143, 145, 146, 147, 148, 155, 156, 157, 158, 159,
-  160, 161, 162, 164, 165, 166, 167, 173, 182, 183, 184,
-  185, 186, 187, 190, 197, 207, 208, 209, 210, 215, 216,
-  217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227,
-  228, 229, 230
-]
-skip_commits = [136]
-
-if (int(sys.argv[1]) in release_tool_commits):
-  print("release_tools")
-elif (int(sys.argv[1]) in skip_commits):
-  print("skip")
-else:
-  print("normal")
-EOF
-          )
-          if [[ $method == "release_tools" ]]; then
-            echo "applying patch $patch_number to release_tools"
-            file=$(basename $commit)
-            cat $commit | sed 's% a/% a/release-tools/%g' | sed 's% b/% b/release-tools/%g' >../../hack/patches/attacher_fixed/$file
-            git am --3way ../../hack/patches/attacher_fixed/$file
-          elif [[ $method == "skip" ]]; then
-            echo "skipping patch $patch_number"
-          else
+          if [[ -n $(grep $commit_hash ../../hack/csi-release-tools-hashes.txt) ]]; then
+            echo "skipping commit $commit_hash because it's for release-tools"
+            # file=$(basename $commit)
+            # cat $commit | sed 's% a/% a/release-tools/%g' | sed 's% b/% b/release-tools/%g' >../../hack/patches/attacher_fixed/$file
+            # git am --3way ../../hack/patches/attacher_fixed/$file
+          elif grep -q git-subtree-dir $commit; then
+            echo "skipping commit $commit_hash because it's for release-tools"
+          elif [[ $patch_number =~ (269|270) ]]; then
+            echo "skipping commit $commit_hash because it was already seen!"
+          elif [[ $patch_number =~ (192|195) ]]; then
             git am --3way $commit
+          elif [[ $patch_number =~ (233|262|264|307) ]]; then
+            echo "special commit apply"
+            go mod vendor
+            (git add vendor/modules.txt && git commit -m "fixup") || true
+            git am $commit
+            # elif [[ $patch_number =~ (502|506|509|511|512|514|515|516|517|518|519|520|521|522|524|525|526) ]]; then
+            # echo "special commit skip!"
+          else
+            git am $commit
           fi
         done
       )
