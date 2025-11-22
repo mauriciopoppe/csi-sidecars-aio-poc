@@ -52,13 +52,13 @@ for i in attacher,master provisioner,master resizer,master; do
 
     cat pkg/${SIDECAR}/go.mod | grep "	" | grep -v "indirect" >>tmp/gomod-require.txt
 
-    # NOTE: the sed command is temporary while provisioner adopts a more recent version of k8s, check #18 for more info.
-    cat pkg/${SIDECAR}/go.mod | { grep "replace " || [[ $? == 1 ]]; } | sed 's/v0.34/v0.33/g' >>tmp/gomod-replace.txt
+    # NOTE: the sed command is to keep consistent package relies among different repos.
+    cat pkg/${SIDECAR}/go.mod | { grep "replace " || [[ $? == 1 ]]; } | sed 's/v0.34.0/v0.34.1/g' >>tmp/gomod-replace.txt
 
     # Checks for drifts in k8s.io/api, drifts in core dependencies are sometimes impossible to solve
     # e.g. attacher requiring k8s v0.34 and provisioner requiring v0.33.
     # NOTE: the sed command is temporary while provisioner adopts a more recent version of k8s, check #18 for more info.
-    cat pkg/${SIDECAR}/go.mod | grep "replace k8s.io/api =>" | sed 's/v0.34/v0.33/g' >>tmp/gomod-k8sapi.txt
+    cat pkg/${SIDECAR}/go.mod | grep "replace k8s.io/api =>" >>tmp/gomod-k8sapi.txt
 
     ${TRASH} pkg/${SIDECAR}/.git
     ${TRASH} pkg/${SIDECAR}/.github
@@ -109,7 +109,8 @@ for i in attacher,master provisioner,master resizer,master; do
     sed -i".bak" '/logsapi.ValidateAndApply/,/}/d' "${NEW_FILE}"
     sed -i".bak" '/klog.InitFlags/d' "${NEW_FILE}"
     sed -i".bak" '/logtostderr/d' "${NEW_FILE}"
-    sed -i".bak" '/utilfeature.DefaultMutableFeatureGate/,/}/d' "${NEW_FILE}"
+    # sed -i".bak" '/utilfeature.DefaultMutableFeatureGate/,/}/d' "${NEW_FILE}"
+    sed -i".bak" '/^\tif !utilfeature\.DefaultMutableFeatureGate/,/^\t}/d' "${NEW_FILE}"
     sed -i".bak" '/flag.CommandLine.AddGoFlagSet/d' "${NEW_FILE}"
 
     # TODO: handle setting the automaxproc flag from each sidecar>
