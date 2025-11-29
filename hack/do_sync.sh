@@ -18,8 +18,8 @@ cond_exec() {
   echo $@
 }
 
-if [[ ! $(go version) =~ go1.24 ]]; then
-  echo "Install go1.24, please read the README.md"
+if [[ ! $(go version) =~ go1.25 ]]; then
+  echo "Install go1.25, please read the README.md"
   exit 1
 fi
 TRASH="trash"
@@ -40,7 +40,7 @@ symlink_from_root_to_hack() {
 }
 
 # loop params: [repository,branch]
-for i in attacher,master provisioner,master resizer,master; do
+for i in attacher,master provisioner,master resizer,master snapshotter,master; do
   IFS=',' read SIDECAR SIDECAR_HASH <<<"${i}"
   if [[ ! -d pkg/${SIDECAR} ]]; then
     git clone --depth 1 https://github.com/kubernetes-csi/external-${SIDECAR} pkg/${SIDECAR}
@@ -53,7 +53,8 @@ for i in attacher,master provisioner,master resizer,master; do
     cat pkg/${SIDECAR}/go.mod | grep "	" | grep -v "indirect" >>tmp/gomod-require.txt
 
     # NOTE: the sed command is to keep consistent package relies among different repos.
-    cat pkg/${SIDECAR}/go.mod | { grep "replace " || [[ $? == 1 ]]; } | sed 's/v0.34.0/v0.34.1/g' >>tmp/gomod-replace.txt
+    cat pkg/${SIDECAR}/go.mod | { grep "replace " || [[ $? == 1 ]]; } | sed 's/v0.35.0/v0.35.2/g' | sed 's#external-snapshotter/client/v8 => ./client#csi-sidecars/pkg/snapshotter/client/v8 => ./pkg/snapshotter/client#' >>tmp/gomod-replace.txt
+
 
     # Checks for drifts in k8s.io/api, drifts in core dependencies are sometimes impossible to solve
     # e.g. attacher requiring k8s v0.34 and provisioner requiring v0.33.
@@ -117,6 +118,7 @@ for i in attacher,master provisioner,master resizer,master; do
     # In the meantime remove setting the flag and handle it in the AIO sidecar.
     # https://github.com/mauriciopoppe/csi-sidecars-aio-poc/issues/14
     sed -i".bak" '/standardflags.AddAutomaxprocs/d' "${NEW_FILE}"
+    sed -i".bak" '/standardflags.RegisterCommonFlags/d' "${NEW_FILE}"
 
     # Dead imports
     sed -i".bak" '/goflag/d' "${NEW_FILE}"
