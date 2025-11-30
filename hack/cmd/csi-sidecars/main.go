@@ -30,7 +30,7 @@ import (
 	"github.com/kubernetes-csi/csi-sidecars/cmd/csi-sidecars/config"
 	attacherconfig "github.com/kubernetes-csi/csi-sidecars/pkg/attacher/cmd/csi-attacher/config"
 	flag "github.com/spf13/pflag"
-	"sigs.k8s.io/sig-storage-lib-external-provisioner/v11/controller"
+	"sigs.k8s.io/sig-storage-lib-external-provisioner/v13/controller"
 
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	utilflag "k8s.io/component-base/cli/flag"
