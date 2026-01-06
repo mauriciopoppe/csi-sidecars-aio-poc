@@ -39,11 +39,12 @@ symlink_from_root_to_hack() {
   ln -s $PWD/$file $PWD/$file_without_hack
 }
 
-# loop params: [repository,branch]
-for i in attacher,master provisioner,master resizer,master; do
-  IFS=',' read SIDECAR SIDECAR_HASH <<<"${i}"
+# loop params: [repository,branch,repo_prefix]
+# repo_prefix: 'external-' for attacher/provisioner/resizer, '' for node-driver-registrar
+for i in "attacher,master,external-" "provisioner,master,external-" "resizer,master,external-" "node-driver-registrar,master,"; do
+  IFS=',' read SIDECAR SIDECAR_HASH REPO_PREFIX <<<"${i}"
   if [[ ! -d pkg/${SIDECAR} ]]; then
-    git clone --depth 1 https://github.com/kubernetes-csi/external-${SIDECAR} pkg/${SIDECAR}
+    git clone --depth 1 https://github.com/kubernetes-csi/${REPO_PREFIX}${SIDECAR} pkg/${SIDECAR}
     (
       cd pkg/${SIDECAR}
       git checkout ${SIDECAR_HASH}
@@ -75,13 +76,13 @@ for i in attacher,master provisioner,master resizer,master; do
 
     (
       cd pkg/${SIDECAR}
-      find . -type f -exec grep -q "github.com/kubernetes-csi/external-${SIDECAR}/" --files-with-matches {} \; -print
+      find . -type f -exec grep -q "github.com/kubernetes-csi/${REPO_PREFIX}${SIDECAR}/" --files-with-matches {} \; -print
     )
 
     (
       cd pkg/${SIDECAR}
-      find . -type f -exec grep -q "github.com/kubernetes-csi/external-${SIDECAR}/" --files-with-matches {} \; -print |
-        xargs sed -E -i".bak" "s%github.com/kubernetes-csi/external-${SIDECAR}/(v[0-9]+/)?%github.com/kubernetes-csi/csi-sidecars/pkg/${SIDECAR}/%g"
+      find . -type f -exec grep -q "github.com/kubernetes-csi/${REPO_PREFIX}${SIDECAR}/" --files-with-matches {} \; -print |
+        xargs sed -E -i".bak" "s%github.com/kubernetes-csi/${REPO_PREFIX}${SIDECAR}/(v[0-9]+/)?%github.com/kubernetes-csi/csi-sidecars/pkg/${SIDECAR}/%g"
     )
   fi
 
@@ -89,7 +90,7 @@ for i in attacher,master provisioner,master resizer,master; do
     NEW_FILE="cmd/csi-sidecars/${SIDECAR}_$(basename ${FILE})"
     cp -v -- "${FILE}" "${NEW_FILE}"
     # Rename main()
-    sed -i".bak" "s/func main()/func ${SIDECAR}_main(ctx context.Context)/g" "${NEW_FILE}"
+    sed -i".bak" "s/func main()/func ${SIDECAR//-/_}_main(ctx context.Context)/g" "${NEW_FILE}"
     # Remove variables (mostly flags)
     sed -i".bak" '/^var (/,/^)/d' "${NEW_FILE}"
     # Pass context from main.go
@@ -117,6 +118,7 @@ for i in attacher,master provisioner,master resizer,master; do
     # In the meantime remove setting the flag and handle it in the AIO sidecar.
     # https://github.com/mauriciopoppe/csi-sidecars-aio-poc/issues/14
     sed -i".bak" '/standardflags.AddAutomaxprocs/d' "${NEW_FILE}"
+    sed -i".bak" '/csistdflags.AddAutomaxprocs/d' "${NEW_FILE}"
 
     # Dead imports
     sed -i".bak" '/goflag/d' "${NEW_FILE}"
