@@ -25,11 +25,11 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	logsapi "k8s.io/component-base/logs/api/v1"
 	"github.com/kubernetes-csi/csi-lib-utils/standardflags"
 	"github.com/kubernetes-csi/csi-sidecars/cmd/csi-sidecars/config"
 	attacherconfig "github.com/kubernetes-csi/csi-sidecars/pkg/attacher/cmd/csi-attacher/config"
 	flag "github.com/spf13/pflag"
+	logsapi "k8s.io/component-base/logs/api/v1"
 	"sigs.k8s.io/sig-storage-lib-external-provisioner/v13/controller"
 
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
@@ -97,6 +97,14 @@ var (
 	// Resizer specific
 	handleVolumeInUseError = flag.Bool("resizer-handle-volume-inuse-error", true, "Flag to turn on/off capability to handle volume in use error in resizer controller. Defaults to true if not set.")
 	extraModifyMetadata    = flag.Bool("resizer-extra-modify-metadata", false, "If set, add pv/pvc metadata to plugin modify requests as parameters.")
+
+	// Node driver registrar specific
+	connectionTimeout       = flag.Duration("connection-timeout", 0, "The --connection-timeout flag is deprecated")
+	pluginRegistrationPath  = flag.String("plugin-registration-path", "/registration", "Path to Kubernetes plugin registration directory.")
+	kubeletRegistrationPath = flag.String("kubelet-registration-path", "", "Path of the CSI driver socket on the Kubernetes host machine.")
+	healthzPort             = flag.Int("health-port", 0, "(deprecated) TCP port for healthz requests. Set to 0 to disable the healthz server. Only one of `--health-port` and `--http-endpoint` can be set.")
+	mode                    = flag.String("mode", "", "DEPRECATED. If this is set to kubelet-registration-probe, the driver will exit successfully without registering with CSI. If set to any other value node-driver-registrar will do the kubelet plugin registration. This flag will be removed in a future major release because the mode kubelet-registration-probe is no longer needed.")
+	supportedVersions       = []string{"1.0.0"}
 
 	featureGates map[string]bool
 	version      = "unknown"
