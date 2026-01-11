@@ -19,16 +19,15 @@ Cloning into 'pkg/attacher'...
 Already on 'master'
 Your branch is up to date with 'origin/master'.
 + git rev-parse --short HEAD
-b58cdfc
+6aed39e
 + cat pkg/attacher/go.mod
 + grep '	'
 + grep -v indirect
 + cat pkg/attacher/go.mod
 + grep 'replace '
-+ sed s/v0.34/v0.33/g
++ sed s/v0.34.0/v0.34.1/g
 + cat pkg/attacher/go.mod
 + grep 'replace k8s.io/api =>'
-+ sed s/v0.34/v0.33/g
 + trash pkg/attacher/.git
 + trash pkg/attacher/.github
 + trash pkg/attacher/vendor
@@ -49,6 +48,7 @@ b58cdfc
 ./CHANGELOG/CHANGELOG-4.0.md
 ./CHANGELOG/CHANGELOG-4.1.md
 ./CHANGELOG/CHANGELOG-3.3.md
+./CHANGELOG/CHANGELOG-4.10.md
 ./CHANGELOG/CHANGELOG-4.6.md
 ./CHANGELOG/CHANGELOG-3.2.md
 ./CHANGELOG/CHANGELOG-3.4.md
@@ -94,7 +94,7 @@ b58cdfc
 + sed -i.bak '/logsapi.ValidateAndApply/,/}/d' cmd/csi-sidecars/attacher_main.go
 + sed -i.bak /klog.InitFlags/d cmd/csi-sidecars/attacher_main.go
 + sed -i.bak /logtostderr/d cmd/csi-sidecars/attacher_main.go
-+ sed -i.bak '/utilfeature.DefaultMutableFeatureGate/,/}/d' cmd/csi-sidecars/attacher_main.go
++ sed -i.bak '/^\tif !utilfeature\.DefaultMutableFeatureGate/,/^\t}/d' cmd/csi-sidecars/attacher_main.go
 + sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/attacher_main.go
 + sed -i.bak /standardflags.AddAutomaxprocs/d cmd/csi-sidecars/attacher_main.go
 + sed -i.bak /goflag/d cmd/csi-sidecars/attacher_main.go
@@ -124,16 +124,15 @@ Cloning into 'pkg/provisioner'...
 Already on 'master'
 Your branch is up to date with 'origin/master'.
 + git rev-parse --short HEAD
-be69ca2
+0868d97
 + cat pkg/provisioner/go.mod
 + grep '	'
 + grep -v indirect
 + cat pkg/provisioner/go.mod
 + grep 'replace '
-+ sed s/v0.34/v0.33/g
++ sed s/v0.34.0/v0.34.1/g
 + cat pkg/provisioner/go.mod
 + grep 'replace k8s.io/api =>'
-+ sed s/v0.34/v0.33/g
 + trash pkg/provisioner/.git
 + trash pkg/provisioner/.github
 + trash pkg/provisioner/vendor
@@ -152,12 +151,14 @@ be69ca2
 ./CHANGELOG/CHANGELOG-1.1.md
 ./CHANGELOG/CHANGELOG-5.3.md
 ./CHANGELOG/CHANGELOG-3.1.md
+./CHANGELOG/CHANGELOG-6.1.md
 ./CHANGELOG/CHANGELOG-4.0.md
 ./CHANGELOG/CHANGELOG-3.3.md
 ./CHANGELOG/CHANGELOG-3.2.md
 ./CHANGELOG/CHANGELOG-3.4.md
 ./CHANGELOG/CHANGELOG-1.5.md
 ./CHANGELOG/CHANGELOG-1.6.md
+./CHANGELOG/CHANGELOG-6.0.md
 ./CHANGELOG/CHANGELOG-2.1.md
 ./CHANGELOG/CHANGELOG-2.2.md
 ./CHANGELOG/CHANGELOG-5.0.md
@@ -169,6 +170,7 @@ be69ca2
 ./CHANGELOG/CHANGELOG-2.0.md
 ./CHANGELOG/CHANGELOG-1.3.md
 ./pkg/controller/topology.go
+./pkg/controller/clone_controller.go
 ./pkg/controller/controller_test.go
 ./pkg/controller/fake_translator_test.go
 ./pkg/controller/controller.go
@@ -200,7 +202,7 @@ be69ca2
 + sed -i.bak '/logsapi.ValidateAndApply/,/}/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak /klog.InitFlags/d cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak /logtostderr/d cmd/csi-sidecars/provisioner_csi-provisioner.go
-+ sed -i.bak '/utilfeature.DefaultMutableFeatureGate/,/}/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak '/^\tif !utilfeature\.DefaultMutableFeatureGate/,/^\t}/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak /standardflags.AddAutomaxprocs/d cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak /goflag/d cmd/csi-sidecars/provisioner_csi-provisioner.go
@@ -231,7 +233,7 @@ be69ca2
 + sed -i.bak '/logsapi.ValidateAndApply/,/}/d' cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak /klog.InitFlags/d cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak /logtostderr/d cmd/csi-sidecars/provisioner_util.go
-+ sed -i.bak '/utilfeature.DefaultMutableFeatureGate/,/}/d' cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak '/^\tif !utilfeature\.DefaultMutableFeatureGate/,/^\t}/d' cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak /standardflags.AddAutomaxprocs/d cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak /goflag/d cmd/csi-sidecars/provisioner_util.go
@@ -262,7 +264,7 @@ be69ca2
 + sed -i.bak '/logsapi.ValidateAndApply/,/}/d' cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak /klog.InitFlags/d cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak /logtostderr/d cmd/csi-sidecars/provisioner_util_test.go
-+ sed -i.bak '/utilfeature.DefaultMutableFeatureGate/,/}/d' cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak '/^\tif !utilfeature\.DefaultMutableFeatureGate/,/^\t}/d' cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak /standardflags.AddAutomaxprocs/d cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak /goflag/d cmd/csi-sidecars/provisioner_util_test.go
@@ -284,16 +286,15 @@ Cloning into 'pkg/resizer'...
 Already on 'master'
 Your branch is up to date with 'origin/master'.
 + git rev-parse --short HEAD
-d6833d0
+9982d04
 + cat pkg/resizer/go.mod
 + grep '	'
 + grep -v indirect
 + cat pkg/resizer/go.mod
 + grep 'replace '
-+ sed s/v0.34/v0.33/g
++ sed s/v0.34.0/v0.34.1/g
 + cat pkg/resizer/go.mod
 + grep 'replace k8s.io/api =>'
-+ sed s/v0.34/v0.33/g
 + trash pkg/resizer/.git
 + trash pkg/resizer/.github
 + trash pkg/resizer/vendor
@@ -324,6 +325,7 @@ d6833d0
 ./CHANGELOG/CHANGELOG-1.2.md
 ./CHANGELOG/CHANGELOG-1.0.md
 ./CHANGELOG/CHANGELOG-1.13.md
+./CHANGELOG/CHANGELOG-2.0.md
 ./CHANGELOG/CHANGELOG-1.3.md
 ./pkg/resizer/csi_resizer.go
 ./pkg/resizer/csi_resizer_test.go
@@ -366,7 +368,7 @@ d6833d0
 + sed -i.bak '/logsapi.ValidateAndApply/,/}/d' cmd/csi-sidecars/resizer_main.go
 + sed -i.bak /klog.InitFlags/d cmd/csi-sidecars/resizer_main.go
 + sed -i.bak /logtostderr/d cmd/csi-sidecars/resizer_main.go
-+ sed -i.bak '/utilfeature.DefaultMutableFeatureGate/,/}/d' cmd/csi-sidecars/resizer_main.go
++ sed -i.bak '/^\tif !utilfeature\.DefaultMutableFeatureGate/,/^\t}/d' cmd/csi-sidecars/resizer_main.go
 + sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/resizer_main.go
 + sed -i.bak /standardflags.AddAutomaxprocs/d cmd/csi-sidecars/resizer_main.go
 + sed -i.bak /goflag/d cmd/csi-sidecars/resizer_main.go
@@ -429,6 +431,7 @@ Cloning into 'staging/src/github.com/kubernetes-csi/csi-lib-utils'...
 + trash go.work go.sum
 + go work init .
 + go work use ./staging/src/github.com/kubernetes-csi/csi-lib-utils
+go: staging/src/github.com/kubernetes-csi/csi-lib-utils/go.mod requires go >= 1.24.6; switching to go1.24.11
 + go mod tidy
 + go work vendor
 + make build
@@ -456,7 +459,7 @@ export os_arch_seen="" && echo '' | tr ';' '\n' | while read -r os arch buildx_p
 	if ! [ ${#os_arch_seen_pre} = ${#os_arch_seen} ]; then \
 		continue; \
 	fi; \
-	if ! (set -x; cd ./cmd/csi-sidecars && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build  -a -ldflags ' -X main.version=7697afc03e69d24d98119d2f253f9c43a63a8feb -extldflags "-static"' -o "/home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars$suffix" .); then \
+	if ! (set -x; cd ./cmd/csi-sidecars && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build  -a -ldflags ' -X main.version=f54bca71335afe4d524b67e75ecd84b68748889c -extldflags "-static"' -o "/home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars$suffix" .); then \
 		echo "Building csi-sidecars for GOOS=$os GOARCH=$arch failed, see error(s) above."; \
 		exit 1; \
 	fi; \
@@ -466,7 +469,7 @@ done
 + CGO_ENABLED=0
 + GOOS=
 + GOARCH=
-+ go build -a -ldflags ' -X main.version=7697afc03e69d24d98119d2f253f9c43a63a8feb -extldflags "-static"' -o /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars .
++ go build -a -ldflags ' -X main.version=f54bca71335afe4d524b67e75ecd84b68748889c -extldflags "-static"' -o /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars .
 + ./bin/csi-sidecars --help
 Usage of ./bin/csi-sidecars:
       --add_dir_header                                    If true, adds the file directory to the header of the log messages
@@ -485,37 +488,34 @@ Usage of ./bin/csi-sidecars:
       --feature-gates mapStringBool                       A set of key=value pairs that describe feature gates for alpha/experimental features. Options are:
                                                           APIResponseCompression=true|false (BETA - default=true)
                                                           APIServerIdentity=true|false (BETA - default=true)
-                                                          APIServerTracing=true|false (BETA - default=true)
                                                           APIServingWithRoutine=true|false (ALPHA - default=false)
                                                           AllAlpha=true|false (ALPHA - default=false)
                                                           AllBeta=true|false (BETA - default=false)
                                                           AllowParsingUserUIDFromCertAuth=true|false (BETA - default=true)
                                                           AllowUnsafeMalformedObjectDeletion=true|false (ALPHA - default=false)
                                                           AnnotateFsResize=true|false (ALPHA - default=false)
-                                                          AnonymousAuthConfigurableEndpoints=true|false (BETA - default=true)
-                                                          AuthorizeWithSelectors=true|false (BETA - default=true)
                                                           CBORServingAndStorage=true|false (ALPHA - default=false)
+                                                          ComponentFlagz=true|false (ALPHA - default=false)
+                                                          ComponentStatusz=true|false (ALPHA - default=false)
                                                           ConcurrentWatchObjectDecode=true|false (BETA - default=false)
-                                                          ConsistentListFromCache=true|false (BETA - default=true)
                                                           CoordinatedLeaderElection=true|false (BETA - default=false)
                                                           CrossNamespaceVolumeDataSource=true|false (ALPHA - default=false)
-                                                          ListFromCacheSnapshot=true|false (ALPHA - default=false)
+                                                          DetectCacheInconsistency=true|false (BETA - default=true)
+                                                          ListFromCacheSnapshot=true|false (BETA - default=true)
                                                           MutableCSINodeAllocatableCount=true|false (BETA - default=false)
-                                                          MutatingAdmissionPolicy=true|false (ALPHA - default=false)
+                                                          MutatingAdmissionPolicy=true|false (BETA - default=false)
                                                           OpenAPIEnums=true|false (BETA - default=true)
                                                           RecoverVolumeExpansionFailure=true|false (BETA - default=true)
                                                           ReleaseLeaderElectionOnExit=true|false (ALPHA - default=false)
                                                           RemoteRequestHeaderUID=true|false (BETA - default=true)
-                                                          ResilientWatchCacheInitialization=true|false (BETA - default=true)
+                                                          SizeBasedListCostEstimate=true|false (BETA - default=true)
                                                           StorageVersionAPI=true|false (ALPHA - default=false)
                                                           StorageVersionHash=true|false (BETA - default=true)
-                                                          StreamingCollectionEncodingToJSON=true|false (BETA - default=true)
-                                                          StreamingCollectionEncodingToProtobuf=true|false (BETA - default=true)
-                                                          StructuredAuthenticationConfiguration=true|false (BETA - default=true)
+                                                          StructuredAuthenticationConfigurationEgressSelector=true|false (BETA - default=true)
+                                                          TokenRequestServiceAccountUIDValidation=true|false (BETA - default=true)
                                                           UnauthenticatedHTTP2DOSMitigation=true|false (BETA - default=true)
-                                                          VolumeAttributesClass=true|false (BETA - default=false)
                                                           WatchCacheInitializationPostStartHook=true|false (BETA - default=false)
-                                                          WatchList=true|false (BETA - default=false)
+                                                          WatchList=true|false (BETA - default=true)
       --http-endpoint :8080                               The TCP network address where the HTTP server for diagnostics, including metrics and leader election health check, will listen (example: :8080). The default is empty string, which means the server is disabled. Only one of `--metrics-address` and `--http-endpoint` can be set.
       --kube-api-burst int                                Burst to use while communicating with the kubernetes apiserver. Defaults to 10. (default 10)
       --kube-api-qps float                                QPS to use while communicating with the kubernetes apiserver. Defaults to 5.0. (default 5)
@@ -584,33 +584,31 @@ Usage of ./bin/csi-attacher:
     	A set of key=value pairs that describe feature gates for alpha/experimental features. Options are:
     	APIResponseCompression=true|false (BETA - default=true)
     	APIServerIdentity=true|false (BETA - default=true)
-    	APIServerTracing=true|false (BETA - default=true)
     	APIServingWithRoutine=true|false (ALPHA - default=false)
     	AllAlpha=true|false (ALPHA - default=false)
     	AllBeta=true|false (BETA - default=false)
     	AllowParsingUserUIDFromCertAuth=true|false (BETA - default=true)
     	AllowUnsafeMalformedObjectDeletion=true|false (ALPHA - default=false)
-    	AnonymousAuthConfigurableEndpoints=true|false (BETA - default=true)
-    	AuthorizeWithSelectors=true|false (BETA - default=true)
     	CBORServingAndStorage=true|false (ALPHA - default=false)
+    	ComponentFlagz=true|false (ALPHA - default=false)
+    	ComponentStatusz=true|false (ALPHA - default=false)
     	ConcurrentWatchObjectDecode=true|false (BETA - default=false)
-    	ConsistentListFromCache=true|false (BETA - default=true)
     	CoordinatedLeaderElection=true|false (BETA - default=false)
-    	ListFromCacheSnapshot=true|false (ALPHA - default=false)
+    	DetectCacheInconsistency=true|false (BETA - default=true)
+    	ListFromCacheSnapshot=true|false (BETA - default=true)
     	MutableCSINodeAllocatableCount=true|false (BETA - default=false)
-    	MutatingAdmissionPolicy=true|false (ALPHA - default=false)
+    	MutatingAdmissionPolicy=true|false (BETA - default=false)
     	OpenAPIEnums=true|false (BETA - default=true)
     	ReleaseLeaderElectionOnExit=true|false (ALPHA - default=false)
     	RemoteRequestHeaderUID=true|false (BETA - default=true)
-    	ResilientWatchCacheInitialization=true|false (BETA - default=true)
+    	SizeBasedListCostEstimate=true|false (BETA - default=true)
     	StorageVersionAPI=true|false (ALPHA - default=false)
     	StorageVersionHash=true|false (BETA - default=true)
-    	StreamingCollectionEncodingToJSON=true|false (BETA - default=true)
-    	StreamingCollectionEncodingToProtobuf=true|false (BETA - default=true)
-    	StructuredAuthenticationConfiguration=true|false (BETA - default=true)
+    	StructuredAuthenticationConfigurationEgressSelector=true|false (BETA - default=true)
+    	TokenRequestServiceAccountUIDValidation=true|false (BETA - default=true)
     	UnauthenticatedHTTP2DOSMitigation=true|false (BETA - default=true)
     	WatchCacheInitializationPostStartHook=true|false (BETA - default=false)
-    	WatchList=true|false (BETA - default=false)
+    	WatchList=true|false (BETA - default=true)
   -http-endpoint :8080
     	The TCP network address where the HTTP server for diagnostics, including metrics and leader election health check, will listen (example: :8080). The default is empty string, which means the server is disabled. Only one of `--metrics-address` and `--http-endpoint` can be set.
   -kube-api-burst int
@@ -667,4 +665,3 @@ Usage of ./bin/csi-attacher:
     	comma-separated list of pattern=N settings for file-filtered logging (only works for text log format)
   -worker-threads int
     	Number of worker threads per sidecar (default 10)
-+ cat

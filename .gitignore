@@ -1,4 +1,6 @@
 /bin/
+.venv
+venv
+
 !/hack/do_sync.log
 !.prow.sh.log
-/venv

@@ -29,8 +29,14 @@ fi
 
 mkdir -p tmp pkg cmd/csi-sidecars/ staging/src/github.com/kubernetes-csi/
 
-# symlink_from_root_to_hack creates a simlink from the project root to hack.
-# e.g. cmd/csi-sidecars/main.go -> hack/cmd/csi-sidecars/main.go
+# symlink_from_root_to_hack creates a simlink from a file in project root to hack.
+#
+# Usage:
+# symlink_from_root_to_hack <hack/ prefixed directory>
+#
+# Example:
+# symlink_from_root_to_hack hack/cmd/csi-sidecars/main.go
+# (creates the symlink cmd/csi-sidecars/main.go -> hack/cmd/csi-sidecars/main.go)
 symlink_from_root_to_hack() {
   file="$1"
   # strip hack/ prefix
@@ -57,7 +63,6 @@ for i in attacher,master provisioner,master resizer,master; do
 
     # Checks for drifts in k8s.io/api, drifts in core dependencies are sometimes impossible to solve
     # e.g. attacher requiring k8s v0.34 and provisioner requiring v0.33.
-    # NOTE: the sed command is temporary while provisioner adopts a more recent version of k8s, check #18 for more info.
     cat pkg/${SIDECAR}/go.mod | grep "replace k8s.io/api =>" >>tmp/gomod-k8sapi.txt
 
     ${TRASH} pkg/${SIDECAR}/.git
@@ -85,6 +90,12 @@ for i in attacher,master provisioner,master resizer,master; do
     )
   fi
 
+  # After cloning a CSI repository its entrypoints have additional code that now belong
+  # to this codebase, for example:
+  #
+  # - A main() function - CSI repositories no longer need them.
+  # - Flags, logging code
+  # may have code that
   for FILE in pkg/${SIDECAR}/cmd/csi-${SIDECAR}/*.go; do
     NEW_FILE="cmd/csi-sidecars/${SIDECAR}_$(basename ${FILE})"
     cp -v -- "${FILE}" "${NEW_FILE}"
@@ -133,11 +144,13 @@ for i in attacher,master provisioner,master resizer,master; do
     fi
   done
 
-  # This is a temporary change that tests what it'd be to make a refactor
-  # in how flags are parsed in the individual sidecar only, it's tested
-  # later when building the individual sidecar.
+  # Temporary change that tests what it'd take to make a refactor in how flags are parsed,
+  # it's tested later when building the individual sidecar.
   if [[ "${SIDECAR}" == "attacher" ]]; then
     rm pkg/attacher/cmd/csi-attacher/main.go
+    # This file was forked and manually edited to test the flag initialization feature strategy
+    # described in https://docs.google.com/document/d/1AKqJeAlBL8PkH8D9zABCZ82Bk1N46EygKPvVh5p4-qU/edit?tab=t.0
+    # For more info read the comments that say `override`
     symlink_from_root_to_hack hack/pkg/attacher/cmd/csi-attacher/main.go
   fi
 done
@@ -153,9 +166,11 @@ if [[ ${SKIP_SANITY_CHECK} != "true" ]] && [[ $(cat tmp/gomod-k8sapi.txt | sort 
   exit 1
 fi
 
-# Use files in hack/ in the project root by creating symlinks from the project root -> hack
+# The new entrypoint for all the sidecars
 symlink_from_root_to_hack hack/cmd/csi-sidecars/main.go
+# The utility global function to register common and per-sidecar flags.
 symlink_from_root_to_hack hack/cmd/csi-sidecars/config/flags.go
+# The utility glofal functions to register attacher flags.
 symlink_from_root_to_hack hack/pkg/attacher/cmd/csi-attacher/config/flags.go
 
 # Create merged go.mod
@@ -174,6 +189,7 @@ EOF
 cat tmp/gomod-replace.txt | sort | uniq >>go.mod
 go mod tidy
 
+# The makefile
 cat <<EOF >Makefile
 CMDS=csi-sidecars
 all: build
@@ -181,6 +197,7 @@ all: build
 include release-tools/build.make
 EOF
 
+# Clone csi-libe utils into the staging/ directory and add an override to use the local copy in go.mod
 csi_lib_utils=staging/src/github.com/kubernetes-csi/csi-lib-utils
 if [[ ! -d ${csi_lib_utils} ]]; then
   git clone https://github.com/kubernetes-csi/csi-lib-utils ${csi_lib_utils}
@@ -195,6 +212,7 @@ if [[ ! -d ${csi_lib_utils} ]]; then
   fi
 fi
 
+# go.work setup
 ${TRASH} go.work go.sum
 go work init .
 go work use ./staging/src/github.com/kubernetes-csi/csi-lib-utils
@@ -209,16 +227,15 @@ make build
 go build -a -ldflags ' -X main.version=foo -extldflags "-static"' -o ./bin/csi-attacher ./pkg/attacher/cmd/csi-attacher
 ./bin/csi-attacher --help || true
 
-cat <<'EOF' >Dockerfile
-FROM gcr.io/distroless/static:latest
-LABEL maintainers="Kubernetes Authors"
-LABEL description="CSI Sidecars"
-ARG binary=./bin/csi-sidecars
-
-COPY ${binary} csi-sidecars
-ENTRYPOINT ["/csi-sidecars"]
-EOF
-
+# cat <<'EOF' >Dockerfile
+# FROM gcr.io/distroless/static:latest
+# LABEL maintainers="Kubernetes Authors"
+# LABEL description="CSI Sidecars"
+# ARG binary=./bin/csi-sidecars
+# COPY ${binary} csi-sidecars
+# ENTRYPOINT ["/csi-sidecars"]
+# EOF
+#
 # export PULL_BASE_REF=master
 # export REGISTRY_NAME=ghcr.io/mauriciopoppe/csi-sidecars-aio-poc
 # HW_ARCH=$(uname -m)

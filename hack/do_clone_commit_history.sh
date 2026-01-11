@@ -45,13 +45,10 @@ for i in external-attacher,master external-provisioner,master external-resizer,m
 # commit.original_id is a byte string of the original SHA-1
 original_hash = commit.original_id.decode()
 
-# Github link for reference.
-github_link = f\"https://github.com/kubernetes-csi/${SIDECAR}/commit/{original_hash}\"
-
 # Append a trailer to the commit message.
 # We decode the message to add the string, then re-encode to bytes.
 original_message = commit.message.decode()
-new_message = f\"{original_message}\n\nImported-from: ${SIDECAR}\n\nOriginal-commit: {original_hash}\n\nGithub-link: {github_link}\"
+new_message = f\"{original_message}\n\nImported-from: ${SIDECAR}\n\nOriginal-commit-hash: {original_hash}\"
 commit.message = new_message.encode()
     " \
       --to-subdirectory-filter pkg/${SIDECAR#external-} --force
