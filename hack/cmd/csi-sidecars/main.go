@@ -102,35 +102,38 @@ var (
 	version      = "unknown"
 )
 
-// copyFlagsFromConfigToGlobalVars copies flags from config.AIOConfiguration to the global vars
+// copyFlagsFromConfigToGlobalVars copies flags from standardflags.Configuration
+// and config.AIOConfiguration to the global vars.
 // This is a workaround until the sidecars are refactored to work with a nested config.
 func copyFlagsFromConfigToGlobalVars() {
+	// AIO-specific flags from config.Configuration
 	master = &config.Configuration.Master
-	kubeconfig = &config.Configuration.KubeConfig
-	kubeConfig = &config.Configuration.KubeConfig
-	csiEndpoint = &config.Configuration.CSIAddress
-	csiAddress = &config.Configuration.CSIAddress
-	showVersion = &config.Configuration.ShowVersion
 	resync = &config.Configuration.Resync
 	resyncPeriod = &config.Configuration.Resync
 	retryIntervalStart = &config.Configuration.RetryIntervalStart
 	retryIntervalMax = &config.Configuration.RetryIntervalMax
-	enableLeaderElection = &config.Configuration.LeaderElection
-	leaderElectionNamespace = &config.Configuration.LeaderElectionNamespace
-	leaderElectionLeaseDuration = &config.Configuration.LeaderElectionLeaseDuration
-	leaderElectionRenewDeadline = &config.Configuration.LeaderElectionRenewDeadline
-	leaderElectionRetryPeriod = &config.Configuration.LeaderElectionRetryPeriod
 
-	var kubeAPIQPSFloat64Ptr *float64
-	kubeAPIQPSFloat64Ptr = &config.Configuration.KubeAPIQPS
-	kubeAPIQPSFloat32 := float32(*kubeAPIQPSFloat64Ptr)
+	// Common flags from standardflags.Configuration
+	kubeconfig = &standardflags.Configuration.KubeConfig
+	kubeConfig = &standardflags.Configuration.KubeConfig
+	csiEndpoint = &standardflags.Configuration.CSIAddress
+	csiAddress = &standardflags.Configuration.CSIAddress
+	showVersion = &standardflags.Configuration.ShowVersion
+	enableLeaderElection = &standardflags.Configuration.LeaderElection
+	leaderElectionNamespace = &standardflags.Configuration.LeaderElectionNamespace
+	leaderElectionLeaseDuration = &standardflags.Configuration.LeaderElectionLeaseDuration
+	leaderElectionRenewDeadline = &standardflags.Configuration.LeaderElectionRenewDeadline
+	leaderElectionRetryPeriod = &standardflags.Configuration.LeaderElectionRetryPeriod
+
+	kubeAPIQPSFloat32 := float32(standardflags.Configuration.KubeAPIQPS)
 	kubeAPIQPS = &kubeAPIQPSFloat32
 
-	kubeAPIBurst = &config.Configuration.KubeAPIBurst
-	httpEndpoint = &config.Configuration.HttpEndpoint
-	metricsAddress = &config.Configuration.MetricsAddress
-	metricsPath = &config.Configuration.MetricsPath
+	kubeAPIBurst = &standardflags.Configuration.KubeAPIBurst
+	httpEndpoint = &standardflags.Configuration.HttpEndpoint
+	metricsAddress = &standardflags.Configuration.MetricsAddress
+	metricsPath = &standardflags.Configuration.MetricsPath
 
+	// Attacher-specific flags from config.Configuration.AttacherConfiguration
 	defaultFSType = &config.Configuration.AttacherConfiguration.DefaultFSType
 	workerThreads = &config.Configuration.AttacherConfiguration.WorkerThreads
 	workers = &config.Configuration.AttacherConfiguration.WorkerThreads
@@ -148,7 +151,8 @@ func main() {
 		"Options are:\n"+strings.Join(utilfeature.DefaultFeatureGate.KnownFeatures(), "\n"))
 
 	klog.InitFlags(nil)
-	config.RegisterCommonFlags(goflag.CommandLine)
+	standardflags.RegisterCommonFlags(goflag.CommandLine)
+	config.RegisterAIOFlags(goflag.CommandLine)
 	attacherconfig.RegisterAttacherFlagsWithPrefix(goflag.CommandLine, &config.Configuration.AttacherConfiguration)
 	standardflags.AddAutomaxprocs(klog.Infof)
 	c := logsapi.NewLoggingConfiguration()
