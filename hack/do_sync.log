@@ -1,12 +1,20 @@
++ TRASH=trash
++ command -v trash
++ TRASH='rm -rf'
++ rm -rf pkg cmd staging vendor go.mod go.sum go.work go.work.sum tmp bin
+[root@iZrj96h7iywwlhiwr92j72Z csi-sidecars-aio-poc]# ./hack/do_sync.sh.sh > do_sync.log
+-bash: ./hack/do_sync.sh.sh: No such file or directory
+[root@iZrj96h7iywwlhiwr92j72Z csi-sidecars-aio-poc]# ^C
+[root@iZrj96h7iywwlhiwr92j72Z csi-sidecars-aio-poc]# ./hack/do_sync.sh > do_sync.log
 ++ uname
 + [[ Linux != \L\i\n\u\x ]]
 + SKIP_SANITY_CHECK=
 + DRY_RUN=false
 ++ go version
-+ [[ ! go version go1.24.3 linux/arm64 =~ go1.24 ]]
++ [[ ! go version go1.25.7 (Red Hat 1.25.7-1.0.1.al8) linux/amd64 =~ go1.25 ]]
 + TRASH=trash
 + command -v trash
-/home/mauriciopoppe.linux/n/bin/trash
++ TRASH='rm -rf'
 + mkdir -p tmp pkg cmd/csi-sidecars/ staging/src/github.com/kubernetes-csi/
 + for i in attacher,master provisioner,master resizer,master
 + IFS=,
@@ -14,62 +22,38 @@
 + [[ ! -d pkg/attacher ]]
 + git clone --depth 1 https://github.com/kubernetes-csi/external-attacher pkg/attacher
 Cloning into 'pkg/attacher'...
+remote: Enumerating objects: 7703, done.
+remote: Counting objects: 100% (7703/7703), done.
+remote: Compressing objects: 100% (5139/5139), done.
+remote: Total 7703 (delta 2983), reused 5045 (delta 2165), pack-reused 0 (from 0)
+Receiving objects: 100% (7703/7703), 9.80 MiB | 20.56 MiB/s, done.
+Resolving deltas: 100% (2983/2983), done.
 + cd pkg/attacher
 + git checkout master
 Already on 'master'
-Your branch is up to date with 'origin/master'.
 + git rev-parse --short HEAD
-6aed39e
 + cat pkg/attacher/go.mod
-+ grep '	'
++ grep '        '
 + grep -v indirect
 + cat pkg/attacher/go.mod
 + grep 'replace '
-+ sed s/v0.34.0/v0.34.1/g
++ sed s/v0.35.0/v0.35.2/g
 + cat pkg/attacher/go.mod
 + grep 'replace k8s.io/api =>'
-+ trash pkg/attacher/.git
-+ trash pkg/attacher/.github
-+ trash pkg/attacher/vendor
-+ trash pkg/attacher/release-tools
-+ trash pkg/attacher/go.mod
-+ trash pkg/attacher/go.sum
-+ trash pkg/attacher/Dockerfile
-+ trash pkg/attacher/.cloudbuild.sh
-+ trash pkg/attacher/cloudbuild.yaml
-+ trash pkg/attacher/.prow.sh
-+ trash pkg/attacher/OWNER_ALIASES
-+ trash pkg/attacher/Makefile
++ rm -rf pkg/attacher/.git
++ rm -rf pkg/attacher/.github
++ rm -rf pkg/attacher/vendor
++ rm -rf pkg/attacher/release-tools
++ rm -rf pkg/attacher/go.mod
++ rm -rf pkg/attacher/go.sum
++ rm -rf pkg/attacher/Dockerfile
++ rm -rf pkg/attacher/.cloudbuild.sh
++ rm -rf pkg/attacher/cloudbuild.yaml
++ rm -rf pkg/attacher/.prow.sh
++ rm -rf pkg/attacher/OWNER_ALIASES
++ rm -rf pkg/attacher/Makefile
 + cd pkg/attacher
 + find . -type f -exec grep -q github.com/kubernetes-csi/external-attacher/ --files-with-matches '{}' ';' -print
-./cmd/csi-attacher/main.go
-./CHANGELOG/CHANGELOG-1.1.md
-./CHANGELOG/CHANGELOG-3.1.md
-./CHANGELOG/CHANGELOG-4.0.md
-./CHANGELOG/CHANGELOG-4.1.md
-./CHANGELOG/CHANGELOG-3.3.md
-./CHANGELOG/CHANGELOG-4.10.md
-./CHANGELOG/CHANGELOG-4.6.md
-./CHANGELOG/CHANGELOG-3.2.md
-./CHANGELOG/CHANGELOG-3.4.md
-./CHANGELOG/CHANGELOG-3.5.md
-./CHANGELOG/CHANGELOG-2.1.md
-./CHANGELOG/CHANGELOG-4.7.md
-./CHANGELOG/CHANGELOG-2.2.md
-./CHANGELOG/CHANGELOG-3.0.md
-./CHANGELOG/CHANGELOG-4.9.md
-./CHANGELOG/CHANGELOG-1.2.md
-./CHANGELOG/CHANGELOG-4.2.md
-./CHANGELOG/CHANGELOG-2.0.md
-./CHANGELOG/CHANGELOG-4.8.md
-./CHANGELOG/CHANGELOG-4.3.md
-./CHANGELOG/CHANGELOG-4.5.md
-./pkg/controller/csi_handler_test.go
-./pkg/controller/csi_handler.go
-./pkg/controller/trivial_handler_test.go
-./pkg/controller/framework_test.go
-./pkg/controller/controller.go
-./pkg/attacher/attacher_test.go
 + cd pkg/attacher
 + find . -type f -exec grep -q github.com/kubernetes-csi/external-attacher/ --files-with-matches '{}' ';' -print
 + xargs sed -E -i.bak 's%github.com/kubernetes-csi/external-attacher/(v[0-9]+/)?%github.com/kubernetes-csi/csi-sidecars/pkg/attacher/%g'
@@ -77,7 +61,6 @@ Your branch is up to date with 'origin/master'.
 ++ basename pkg/attacher/cmd/csi-attacher/main.go
 + NEW_FILE=cmd/csi-sidecars/attacher_main.go
 + cp -v -- pkg/attacher/cmd/csi-attacher/main.go cmd/csi-sidecars/attacher_main.go
-'pkg/attacher/cmd/csi-attacher/main.go' -> 'cmd/csi-sidecars/attacher_main.go'
 + sed -i.bak 's/func main()/func attacher_main(ctx context.Context)/g' cmd/csi-sidecars/attacher_main.go
 + sed -i.bak '/^var (/,/^)/d' cmd/csi-sidecars/attacher_main.go
 + sed -i.bak '/ctx :=/d' cmd/csi-sidecars/attacher_main.go
@@ -97,11 +80,11 @@ Your branch is up to date with 'origin/master'.
 + sed -i.bak '/^\tif !utilfeature\.DefaultMutableFeatureGate/,/^\t}/d' cmd/csi-sidecars/attacher_main.go
 + sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/attacher_main.go
 + sed -i.bak /standardflags.AddAutomaxprocs/d cmd/csi-sidecars/attacher_main.go
++ sed -i.bak /standardflags.RegisterCommonFlags/d cmd/csi-sidecars/attacher_main.go
 + sed -i.bak /goflag/d cmd/csi-sidecars/attacher_main.go
 + sed -i.bak '/flag"/d' cmd/csi-sidecars/attacher_main.go
 + sed -i.bak '/featuregate"/d' cmd/csi-sidecars/attacher_main.go
 + sed -i.bak /logs/d cmd/csi-sidecars/attacher_main.go
-+ sed -i.bak '/csi-lib-utils\/standardflags/d' cmd/csi-sidecars/attacher_main.go
 + '[' attacher = resizer ']'
 + '[' attacher = attacher ']'
 + sed -i.bak /strings/d cmd/csi-sidecars/attacher_main.go
@@ -112,72 +95,46 @@ Your branch is up to date with 'origin/master'.
 + file_without_hack=pkg/attacher/cmd/csi-attacher/main.go
 ++ dirname pkg/attacher/cmd/csi-attacher/main.go
 + mkdir -p pkg/attacher/cmd/csi-attacher
-+ ln -s /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/hack/pkg/attacher/cmd/csi-attacher/main.go /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/pkg/attacher/cmd/csi-attacher/main.go
++ ln -s /root/csi-sidecars-aio-poc/hack/pkg/attacher/cmd/csi-attacher/main.go /root/csi-sidecars-aio-poc/pkg/attacher/cmd/csi-attacher/main.go
 + for i in attacher,master provisioner,master resizer,master
 + IFS=,
 + read SIDECAR SIDECAR_HASH
 + [[ ! -d pkg/provisioner ]]
 + git clone --depth 1 https://github.com/kubernetes-csi/external-provisioner pkg/provisioner
 Cloning into 'pkg/provisioner'...
+remote: Enumerating objects: 9966, done.
+remote: Counting objects: 100% (9966/9966), done.
+remote: Compressing objects: 100% (6549/6549), done.
+remote: Total 9966 (delta 3745), reused 6762 (delta 2891), pack-reused 0 (from 0)
+Receiving objects: 100% (9966/9966), 13.29 MiB | 24.89 MiB/s, done.
+Resolving deltas: 100% (3745/3745), done.
 + cd pkg/provisioner
 + git checkout master
 Already on 'master'
-Your branch is up to date with 'origin/master'.
 + git rev-parse --short HEAD
-0868d97
 + cat pkg/provisioner/go.mod
-+ grep '	'
++ grep '        '
 + grep -v indirect
 + cat pkg/provisioner/go.mod
 + grep 'replace '
-+ sed s/v0.34.0/v0.34.1/g
++ sed s/v0.35.0/v0.35.2/g
 + cat pkg/provisioner/go.mod
 + grep 'replace k8s.io/api =>'
-+ trash pkg/provisioner/.git
-+ trash pkg/provisioner/.github
-+ trash pkg/provisioner/vendor
-+ trash pkg/provisioner/release-tools
-+ trash pkg/provisioner/go.mod
-+ trash pkg/provisioner/go.sum
-+ trash pkg/provisioner/Dockerfile
-+ trash pkg/provisioner/.cloudbuild.sh
-+ trash pkg/provisioner/cloudbuild.yaml
-+ trash pkg/provisioner/.prow.sh
-+ trash pkg/provisioner/OWNER_ALIASES
-+ trash pkg/provisioner/Makefile
++ [[ 1 == 1 ]]
++ rm -rf pkg/provisioner/.git
++ rm -rf pkg/provisioner/.github
++ rm -rf pkg/provisioner/vendor
++ rm -rf pkg/provisioner/release-tools
++ rm -rf pkg/provisioner/go.mod
++ rm -rf pkg/provisioner/go.sum
++ rm -rf pkg/provisioner/Dockerfile
++ rm -rf pkg/provisioner/.cloudbuild.sh
++ rm -rf pkg/provisioner/cloudbuild.yaml
++ rm -rf pkg/provisioner/.prow.sh
++ rm -rf pkg/provisioner/OWNER_ALIASES
++ rm -rf pkg/provisioner/Makefile
 + cd pkg/provisioner
 + find . -type f -exec grep -q github.com/kubernetes-csi/external-provisioner/ --files-with-matches '{}' ';' -print
-./cmd/csi-provisioner/csi-provisioner.go
-./CHANGELOG/CHANGELOG-1.1.md
-./CHANGELOG/CHANGELOG-5.3.md
-./CHANGELOG/CHANGELOG-3.1.md
-./CHANGELOG/CHANGELOG-6.1.md
-./CHANGELOG/CHANGELOG-4.0.md
-./CHANGELOG/CHANGELOG-3.3.md
-./CHANGELOG/CHANGELOG-3.2.md
-./CHANGELOG/CHANGELOG-3.4.md
-./CHANGELOG/CHANGELOG-1.5.md
-./CHANGELOG/CHANGELOG-1.6.md
-./CHANGELOG/CHANGELOG-6.0.md
-./CHANGELOG/CHANGELOG-2.1.md
-./CHANGELOG/CHANGELOG-2.2.md
-./CHANGELOG/CHANGELOG-5.0.md
-./CHANGELOG/CHANGELOG-3.0.md
-./CHANGELOG/CHANGELOG-5.1.md
-./CHANGELOG/CHANGELOG-1.4.md
-./CHANGELOG/CHANGELOG-1.2.md
-./CHANGELOG/CHANGELOG-5.2.md
-./CHANGELOG/CHANGELOG-2.0.md
-./CHANGELOG/CHANGELOG-1.3.md
-./pkg/controller/topology.go
-./pkg/controller/clone_controller.go
-./pkg/controller/controller_test.go
-./pkg/controller/fake_translator_test.go
-./pkg/controller/controller.go
-./pkg/capacity/capacity.go
-./pkg/capacity/capacity_test.go
-./extras/docker/Dockerfile.builder
-./test/e2e/e2e_test.go
 + cd pkg/provisioner
 + find . -type f -exec grep -q github.com/kubernetes-csi/external-provisioner/ --files-with-matches '{}' ';' -print
 + xargs sed -E -i.bak 's%github.com/kubernetes-csi/external-provisioner/(v[0-9]+/)?%github.com/kubernetes-csi/csi-sidecars/pkg/provisioner/%g'
@@ -185,7 +142,6 @@ Your branch is up to date with 'origin/master'.
 ++ basename pkg/provisioner/cmd/csi-provisioner/csi-provisioner.go
 + NEW_FILE=cmd/csi-sidecars/provisioner_csi-provisioner.go
 + cp -v -- pkg/provisioner/cmd/csi-provisioner/csi-provisioner.go cmd/csi-sidecars/provisioner_csi-provisioner.go
-'pkg/provisioner/cmd/csi-provisioner/csi-provisioner.go' -> 'cmd/csi-sidecars/provisioner_csi-provisioner.go'
 + sed -i.bak 's/func main()/func provisioner_main(ctx context.Context)/g' cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak '/^var (/,/^)/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak '/ctx :=/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
@@ -205,18 +161,17 @@ Your branch is up to date with 'origin/master'.
 + sed -i.bak '/^\tif !utilfeature\.DefaultMutableFeatureGate/,/^\t}/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak /standardflags.AddAutomaxprocs/d cmd/csi-sidecars/provisioner_csi-provisioner.go
++ sed -i.bak /standardflags.RegisterCommonFlags/d cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak /goflag/d cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak '/flag"/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak '/featuregate"/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
 + sed -i.bak /logs/d cmd/csi-sidecars/provisioner_csi-provisioner.go
-+ sed -i.bak '/csi-lib-utils\/standardflags/d' cmd/csi-sidecars/provisioner_csi-provisioner.go
 + '[' provisioner = resizer ']'
 + '[' provisioner = attacher ']'
 + for FILE in pkg/${SIDECAR}/cmd/csi-${SIDECAR}/*.go
 ++ basename pkg/provisioner/cmd/csi-provisioner/util.go
 + NEW_FILE=cmd/csi-sidecars/provisioner_util.go
 + cp -v -- pkg/provisioner/cmd/csi-provisioner/util.go cmd/csi-sidecars/provisioner_util.go
-'pkg/provisioner/cmd/csi-provisioner/util.go' -> 'cmd/csi-sidecars/provisioner_util.go'
 + sed -i.bak 's/func main()/func provisioner_main(ctx context.Context)/g' cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak '/^var (/,/^)/d' cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak '/ctx :=/d' cmd/csi-sidecars/provisioner_util.go
@@ -236,18 +191,17 @@ Your branch is up to date with 'origin/master'.
 + sed -i.bak '/^\tif !utilfeature\.DefaultMutableFeatureGate/,/^\t}/d' cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak /standardflags.AddAutomaxprocs/d cmd/csi-sidecars/provisioner_util.go
++ sed -i.bak /standardflags.RegisterCommonFlags/d cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak /goflag/d cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak '/flag"/d' cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak '/featuregate"/d' cmd/csi-sidecars/provisioner_util.go
 + sed -i.bak /logs/d cmd/csi-sidecars/provisioner_util.go
-+ sed -i.bak '/csi-lib-utils\/standardflags/d' cmd/csi-sidecars/provisioner_util.go
 + '[' provisioner = resizer ']'
 + '[' provisioner = attacher ']'
 + for FILE in pkg/${SIDECAR}/cmd/csi-${SIDECAR}/*.go
 ++ basename pkg/provisioner/cmd/csi-provisioner/util_test.go
 + NEW_FILE=cmd/csi-sidecars/provisioner_util_test.go
 + cp -v -- pkg/provisioner/cmd/csi-provisioner/util_test.go cmd/csi-sidecars/provisioner_util_test.go
-'pkg/provisioner/cmd/csi-provisioner/util_test.go' -> 'cmd/csi-sidecars/provisioner_util_test.go'
 + sed -i.bak 's/func main()/func provisioner_main(ctx context.Context)/g' cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak '/^var (/,/^)/d' cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak '/ctx :=/d' cmd/csi-sidecars/provisioner_util_test.go
@@ -267,11 +221,11 @@ Your branch is up to date with 'origin/master'.
 + sed -i.bak '/^\tif !utilfeature\.DefaultMutableFeatureGate/,/^\t}/d' cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak /standardflags.AddAutomaxprocs/d cmd/csi-sidecars/provisioner_util_test.go
++ sed -i.bak /standardflags.RegisterCommonFlags/d cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak /goflag/d cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak '/flag"/d' cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak '/featuregate"/d' cmd/csi-sidecars/provisioner_util_test.go
 + sed -i.bak /logs/d cmd/csi-sidecars/provisioner_util_test.go
-+ sed -i.bak '/csi-lib-utils\/standardflags/d' cmd/csi-sidecars/provisioner_util_test.go
 + '[' provisioner = resizer ']'
 + '[' provisioner = attacher ']'
 + [[ provisioner == \a\t\t\a\c\h\e\r ]]
@@ -281,69 +235,40 @@ Your branch is up to date with 'origin/master'.
 + [[ ! -d pkg/resizer ]]
 + git clone --depth 1 https://github.com/kubernetes-csi/external-resizer pkg/resizer
 Cloning into 'pkg/resizer'...
+remote: Enumerating objects: 7676, done.
+remote: Counting objects: 100% (7676/7676), done.
+remote: Compressing objects: 100% (5244/5244), done.
+remote: Total 7676 (delta 2902), reused 4836 (delta 2045), pack-reused 0 (from 0)
+Receiving objects: 100% (7676/7676), 10.12 MiB | 15.65 MiB/s, done.
+Resolving deltas: 100% (2902/2902), done.
 + cd pkg/resizer
 + git checkout master
 Already on 'master'
-Your branch is up to date with 'origin/master'.
 + git rev-parse --short HEAD
-9982d04
 + cat pkg/resizer/go.mod
-+ grep '	'
++ grep '        '
 + grep -v indirect
 + cat pkg/resizer/go.mod
 + grep 'replace '
-+ sed s/v0.34.0/v0.34.1/g
++ sed s/v0.35.0/v0.35.2/g
++ [[ 1 == 1 ]]
 + cat pkg/resizer/go.mod
 + grep 'replace k8s.io/api =>'
-+ trash pkg/resizer/.git
-+ trash pkg/resizer/.github
-+ trash pkg/resizer/vendor
-+ trash pkg/resizer/release-tools
-+ trash pkg/resizer/go.mod
-+ trash pkg/resizer/go.sum
-+ trash pkg/resizer/Dockerfile
-+ trash pkg/resizer/.cloudbuild.sh
-+ trash pkg/resizer/cloudbuild.yaml
-+ trash pkg/resizer/.prow.sh
-+ trash pkg/resizer/OWNER_ALIASES
-+ trash pkg/resizer/Makefile
++ [[ 1 == 1 ]]
++ rm -rf pkg/resizer/.git
++ rm -rf pkg/resizer/.github
++ rm -rf pkg/resizer/vendor
++ rm -rf pkg/resizer/release-tools
++ rm -rf pkg/resizer/go.mod
++ rm -rf pkg/resizer/go.sum
++ rm -rf pkg/resizer/Dockerfile
++ rm -rf pkg/resizer/.cloudbuild.sh
++ rm -rf pkg/resizer/cloudbuild.yaml
++ rm -rf pkg/resizer/.prow.sh
++ rm -rf pkg/resizer/OWNER_ALIASES
++ rm -rf pkg/resizer/Makefile
 + cd pkg/resizer
 + find . -type f -exec grep -q github.com/kubernetes-csi/external-resizer/ --files-with-matches '{}' ';' -print
-./cmd/csi-resizer/main.go
-./CHANGELOG/CHANGELOG-1.1.md
-./CHANGELOG/CHANGELOG-0.5.md
-./CHANGELOG/CHANGELOG-1.7.md
-./CHANGELOG/CHANGELOG-0.3.md
-./CHANGELOG/CHANGELOG-1.11.md
-./CHANGELOG/CHANGELOG-0.4.md
-./CHANGELOG/CHANGELOG-1.5.md
-./CHANGELOG/CHANGELOG-1.6.md
-./CHANGELOG/CHANGELOG-0.2.md
-./CHANGELOG/CHANGELOG-0.1.md
-./CHANGELOG/CHANGELOG-1.10.md
-./CHANGELOG/CHANGELOG-1.4.md
-./CHANGELOG/CHANGELOG-1.2.md
-./CHANGELOG/CHANGELOG-1.0.md
-./CHANGELOG/CHANGELOG-1.13.md
-./CHANGELOG/CHANGELOG-2.0.md
-./CHANGELOG/CHANGELOG-1.3.md
-./pkg/resizer/csi_resizer.go
-./pkg/resizer/csi_resizer_test.go
-./pkg/resizer/trivial_resizer.go
-./pkg/modifier/csi_modifier_test.go
-./pkg/modifier/csi_modifier.go
-./pkg/controller/resize_status.go
-./pkg/controller/controller_test.go
-./pkg/controller/expand_and_recover_test.go
-./pkg/controller/resize_status_test.go
-./pkg/controller/expand_and_recover.go
-./pkg/controller/controller.go
-./pkg/modifycontroller/modify_status.go
-./pkg/modifycontroller/modify_status_test.go
-./pkg/modifycontroller/controller_test.go
-./pkg/modifycontroller/modify_volume.go
-./pkg/modifycontroller/modify_volume_test.go
-./pkg/modifycontroller/controller.go
 + cd pkg/resizer
 + find . -type f -exec grep -q github.com/kubernetes-csi/external-resizer/ --files-with-matches '{}' ';' -print
 + xargs sed -E -i.bak 's%github.com/kubernetes-csi/external-resizer/(v[0-9]+/)?%github.com/kubernetes-csi/csi-sidecars/pkg/resizer/%g'
@@ -351,7 +276,6 @@ Your branch is up to date with 'origin/master'.
 ++ basename pkg/resizer/cmd/csi-resizer/main.go
 + NEW_FILE=cmd/csi-sidecars/resizer_main.go
 + cp -v -- pkg/resizer/cmd/csi-resizer/main.go cmd/csi-sidecars/resizer_main.go
-'pkg/resizer/cmd/csi-resizer/main.go' -> 'cmd/csi-sidecars/resizer_main.go'
 + sed -i.bak 's/func main()/func resizer_main(ctx context.Context)/g' cmd/csi-sidecars/resizer_main.go
 + sed -i.bak '/^var (/,/^)/d' cmd/csi-sidecars/resizer_main.go
 + sed -i.bak '/ctx :=/d' cmd/csi-sidecars/resizer_main.go
@@ -371,19 +295,17 @@ Your branch is up to date with 'origin/master'.
 + sed -i.bak '/^\tif !utilfeature\.DefaultMutableFeatureGate/,/^\t}/d' cmd/csi-sidecars/resizer_main.go
 + sed -i.bak /flag.CommandLine.AddGoFlagSet/d cmd/csi-sidecars/resizer_main.go
 + sed -i.bak /standardflags.AddAutomaxprocs/d cmd/csi-sidecars/resizer_main.go
++ sed -i.bak /standardflags.RegisterCommonFlags/d cmd/csi-sidecars/resizer_main.go
 + sed -i.bak /goflag/d cmd/csi-sidecars/resizer_main.go
 + sed -i.bak '/flag"/d' cmd/csi-sidecars/resizer_main.go
 + sed -i.bak '/featuregate"/d' cmd/csi-sidecars/resizer_main.go
 + sed -i.bak /logs/d cmd/csi-sidecars/resizer_main.go
-+ sed -i.bak '/csi-lib-utils\/standardflags/d' cmd/csi-sidecars/resizer_main.go
 + '[' resizer = resizer ']'
 + sed -i.bak /strings/d cmd/csi-sidecars/resizer_main.go
 + '[' resizer = attacher ']'
 + [[ resizer == \a\t\t\a\c\h\e\r ]]
 + echo 'Sanity checks'
-Sanity checks
 + echo 'Check that the k8s.io dependencies match'
-Check that the k8s.io dependencies match
 + [[ '' != \t\r\u\e ]]
 ++ cat tmp/gomod-k8sapi.txt
 ++ sort
@@ -395,19 +317,19 @@ Check that the k8s.io dependencies match
 + file_without_hack=cmd/csi-sidecars/main.go
 ++ dirname cmd/csi-sidecars/main.go
 + mkdir -p cmd/csi-sidecars
-+ ln -s /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/hack/cmd/csi-sidecars/main.go /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/cmd/csi-sidecars/main.go
++ ln -s /root/csi-sidecars-aio-poc/hack/cmd/csi-sidecars/main.go /root/csi-sidecars-aio-poc/cmd/csi-sidecars/main.go
 + symlink_from_root_to_hack hack/cmd/csi-sidecars/config/flags.go
 + file=hack/cmd/csi-sidecars/config/flags.go
 + file_without_hack=cmd/csi-sidecars/config/flags.go
 ++ dirname cmd/csi-sidecars/config/flags.go
 + mkdir -p cmd/csi-sidecars/config
-+ ln -s /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/hack/cmd/csi-sidecars/config/flags.go /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/cmd/csi-sidecars/config/flags.go
++ ln -s /root/csi-sidecars-aio-poc/hack/cmd/csi-sidecars/config/flags.go /root/csi-sidecars-aio-poc/cmd/csi-sidecars/config/flags.go
 + symlink_from_root_to_hack hack/pkg/attacher/cmd/csi-attacher/config/flags.go
 + file=hack/pkg/attacher/cmd/csi-attacher/config/flags.go
 + file_without_hack=pkg/attacher/cmd/csi-attacher/config/flags.go
 ++ dirname pkg/attacher/cmd/csi-attacher/config/flags.go
 + mkdir -p pkg/attacher/cmd/csi-attacher/config
-+ ln -s /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/hack/pkg/attacher/cmd/csi-attacher/config/flags.go /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/pkg/attacher/cmd/csi-attacher/config/flags.go
++ ln -s /root/csi-sidecars-aio-poc/hack/pkg/attacher/cmd/csi-attacher/config/flags.go /root/csi-sidecars-aio-poc/pkg/attacher/cmd/csi-attacher/config/flags.go
 + cat
 + cat tmp/gomod-require.txt
 + sort
@@ -422,26 +344,30 @@ Check that the k8s.io dependencies match
 + [[ ! -d staging/src/github.com/kubernetes-csi/csi-lib-utils ]]
 + git clone https://github.com/kubernetes-csi/csi-lib-utils staging/src/github.com/kubernetes-csi/csi-lib-utils
 Cloning into 'staging/src/github.com/kubernetes-csi/csi-lib-utils'...
-+ trash staging/src/github.com/kubernetes-csi/csi-lib-utils/.git
-+ trash staging/src/github.com/kubernetes-csi/csi-lib-utils/.github
-+ trash staging/src/github.com/kubernetes-csi/csi-lib-utils/vendor
-+ trash staging/src/github.com/kubernetes-csi/csi-lib-utils/release-tools
+remote: Enumerating objects: 22799, done.
+remote: Counting objects: 100% (1685/1685), done.
+remote: Compressing objects: 100% (459/459), done.
+remote: Total 22799 (delta 1404), reused 1226 (delta 1226), pack-reused 21114 (from 2)
+Receiving objects: 100% (22799/22799), 22.20 MiB | 35.24 MiB/s, done.
+Resolving deltas: 100% (15235/15235), done.
++ rm -rf staging/src/github.com/kubernetes-csi/csi-lib-utils/.git
++ rm -rf staging/src/github.com/kubernetes-csi/csi-lib-utils/.github
++ rm -rf staging/src/github.com/kubernetes-csi/csi-lib-utils/vendor
++ rm -rf staging/src/github.com/kubernetes-csi/csi-lib-utils/release-tools
 + grep -q ./staging/src/github.com/kubernetes-csi/csi-lib-utils go.mod
 + echo 'replace github.com/kubernetes-csi/csi-lib-utils => ./staging/src/github.com/kubernetes-csi/csi-lib-utils'
-+ trash go.work go.sum
++ rm -rf go.work go.sum
 + go work init .
 + go work use ./staging/src/github.com/kubernetes-csi/csi-lib-utils
-go: staging/src/github.com/kubernetes-csi/csi-lib-utils/go.mod requires go >= 1.24.6; switching to go1.24.11
 + go mod tidy
 + go work vendor
 + make build
-./release-tools/verify-go-version.sh "go"
 
 ======================================================
                   WARNING
 
   This projects is tested with Go v1.22.3.
-  Your current Go version is v1.24.
+  Your current Go version is v1.25.
   This may or may not be close enough.
 
   In particular test-gofmt and test-vendor
@@ -449,31 +375,16 @@ go: staging/src/github.com/kubernetes-csi/csi-lib-utils/go.mod requires go >= 1.
   Go.
 ======================================================
 
-mkdir -p bin
-# os_arch_seen captures all of the $os-$arch-$buildx_platform seen for the current binary
-# that we want to build, if we've seen an $os-$arch-$buildx_platform before it means that
-# we don't need to build it again, this is done to avoid building
-# the windows binary multiple times (see the default value of $BUILD_PLATFORMS)
-export os_arch_seen="" && echo '' | tr ';' '\n' | while read -r os arch buildx_platform suffix base_image addon_image; do \
-	os_arch_seen_pre=${os_arch_seen%%$os-$arch-$buildx_platform*}; \
-	if ! [ ${#os_arch_seen_pre} = ${#os_arch_seen} ]; then \
-		continue; \
-	fi; \
-	if ! (set -x; cd ./cmd/csi-sidecars && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build  -a -ldflags ' -X main.version=f54bca71335afe4d524b67e75ecd84b68748889c -extldflags "-static"' -o "/home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars$suffix" .); then \
-		echo "Building csi-sidecars for GOOS=$os GOARCH=$arch failed, see error(s) above."; \
-		exit 1; \
-	fi; \
-	os_arch_seen+=";$os-$arch-$buildx_platform"; \
-done
 + cd ./cmd/csi-sidecars
 + CGO_ENABLED=0
 + GOOS=
 + GOARCH=
-+ go build -a -ldflags ' -X main.version=f54bca71335afe4d524b67e75ecd84b68748889c -extldflags "-static"' -o /home/mauriciopoppe.linux/go/src/github.com/mauriciopoppe/csi-sidecars-aio-poc/bin/csi-sidecars .
++ go build -a -ldflags ' -X main.version=4fc7855b244c71bb2f0968b1363ae849af8dad11 -extldflags "-static"' -o /root/csi-sidecars-aio-poc/bin/csi-sidecars .
 + ./bin/csi-sidecars --help
 Usage of ./bin/csi-sidecars:
       --add_dir_header                                    If true, adds the file directory to the header of the log messages
       --alsologtostderr                                   log to standard error as well as files (no effect when -logtostderr=true)
+      --alsologtostderrthreshold severity                 logs at or above this threshold go to stderr when -alsologtostderr=true (no effect when -logtostderr=true)
       --attacher-default-fstype string                    The default filesystem type of the volume to use.
       --attacher-max-entries int                          Max entries per each page in volume lister call, 0 means no limit.
       --attacher-max-grpc-log-length int                  The maximum amount of characters logged for every grpc responses. Defaults to no limit (default -1)
@@ -484,7 +395,7 @@ Usage of ./bin/csi-sidecars:
       --attacher-worker-threads int                       Number of worker threads per sidecar (default 10)
       --automaxprocs boolFunc[=true]                      automatically set GOMAXPROCS to match Linux container CPU quota
       --controllers string                                A comma-separated list of controllers to enable. The possible values are: [resizer,attacher,provisioner]
-      --csi-address string                                The gRPC endpoint for Target CSI Volume. (default "/run/csi/socket")
+      --csi-address string                                Address of the CSI driver socket. (default "/run/csi/socket")
       --feature-gates mapStringBool                       A set of key=value pairs that describe feature gates for alpha/experimental features. Options are:
                                                           APIResponseCompression=true|false (BETA - default=true)
                                                           APIServerIdentity=true|false (BETA - default=true)
@@ -498,8 +409,11 @@ Usage of ./bin/csi-sidecars:
                                                           ComponentFlagz=true|false (ALPHA - default=false)
                                                           ComponentStatusz=true|false (ALPHA - default=false)
                                                           ConcurrentWatchObjectDecode=true|false (BETA - default=false)
+                                                          ConstrainedImpersonation=true|false (ALPHA - default=false)
                                                           CoordinatedLeaderElection=true|false (BETA - default=false)
                                                           CrossNamespaceVolumeDataSource=true|false (ALPHA - default=false)
+                                                          DeclarativeValidation=true|false (BETA - default=true)
+                                                          DeclarativeValidationTakeover=true|false (BETA - default=false)
                                                           DetectCacheInconsistency=true|false (BETA - default=true)
                                                           ListFromCacheSnapshot=true|false (BETA - default=true)
                                                           MutableCSINodeAllocatableCount=true|false (BETA - default=false)
@@ -512,8 +426,10 @@ Usage of ./bin/csi-sidecars:
                                                           StorageVersionAPI=true|false (ALPHA - default=false)
                                                           StorageVersionHash=true|false (BETA - default=true)
                                                           StructuredAuthenticationConfigurationEgressSelector=true|false (BETA - default=true)
+                                                          StructuredAuthenticationConfigurationJWKSMetrics=true|false (BETA - default=true)
                                                           TokenRequestServiceAccountUIDValidation=true|false (BETA - default=true)
                                                           UnauthenticatedHTTP2DOSMitigation=true|false (BETA - default=true)
+                                                          UnknownVersionInteroperabilityProxy=true|false (ALPHA - default=false)
                                                           WatchCacheInitializationPostStartHook=true|false (BETA - default=false)
                                                           WatchList=true|false (BETA - default=true)
       --http-endpoint :8080                               The TCP network address where the HTTP server for diagnostics, including metrics and leader election health check, will listen (example: :8080). The default is empty string, which means the server is disabled. Only one of `--metrics-address` and `--http-endpoint` can be set.
@@ -521,10 +437,12 @@ Usage of ./bin/csi-sidecars:
       --kube-api-qps float                                QPS to use while communicating with the kubernetes apiserver. Defaults to 5.0. (default 5)
       --kubeconfig string                                 Absolute path to the kubeconfig file. Required only when running out of cluster.
       --leader-election                                   Enable leader election.
+      --leader-election-labels stringMap                  List of labels to add to lease when given replica becomes leader. Formatted as a comma seperated list of key:value labels. Example: 'my-label:my-value,my-second-label:my-second-value' (default map[])
       --leader-election-lease-duration duration           Duration, in seconds, that non-leader candidates will wait to force acquire leadership. Defaults to 15 seconds. (default 15s)
       --leader-election-namespace string                  Namespace where the leader election resource lives. Defaults to the pod namespace if not set.
       --leader-election-renew-deadline duration           Duration, in seconds, that the acting leader will retry refreshing leadership before giving up. Defaults to 10 seconds. (default 10s)
       --leader-election-retry-period duration             Duration, in seconds, the LeaderElector clients should wait between tries of actions. Defaults to 5 seconds. (default 5s)
+      --legacy_stderr_threshold_behavior                  If true, stderrthreshold is ignored when logtostderr=true (legacy behavior). If false, stderrthreshold is honored even when logtostderr=true (default true)
       --log-flush-frequency duration                      Maximum number of seconds between log flushes (default 5s)
       --log-text-info-buffer-size quantity                [Alpha] In text format with split output streams, the info messages can be buffered for a while to increase performance. The default value of zero bytes disables buffering. The size can be specified as number of bytes (512), multiples of 1000 (1K), multiples of 1024 (2Ki), or powers of those (3M, 4G, 5Mi, 6Gi). Enable the LoggingAlphaOptions feature gate to use this.
       --log-text-split-stream                             [Alpha] In text format, write error messages to stderr and info messages to stdout. The default is to write a single stream to stdout. Enable the LoggingAlphaOptions feature gate to use this.
@@ -565,103 +483,121 @@ Usage of ./bin/csi-sidecars:
       --retry-interval-start duration                     Initial retry interval of failed create volume or deletion. It doubles with each failure, up to retry-interval-max. (default 1s)
       --skip_headers                                      If true, avoid header prefixes in the log messages
       --skip_log_headers                                  If true, avoid headers when opening log files (no effect when -logtostderr=true)
-      --stderrthreshold severity                          logs at or above this threshold go to stderr when writing to files and stderr (no effect when -logtostderr=true or -alsologtostderr=true) (default 2)
+      --stderrthreshold severity                          logs at or above this threshold go to stderr when writing to files and stderr (no effect when -logtostderr=true or -alsologtostderr=true unless -legacy_stderr_threshold_behavior=false) (default 2)
   -v, --v Level                                           number for the log level verbosity
       --version                                           Show version.
       --vmodule pattern=N,...                             comma-separated list of pattern=N settings for file-filtered logging (only works for text log format)
-pflag: help requested
-+ true
 + go build -a -ldflags ' -X main.version=foo -extldflags "-static"' -o ./bin/csi-attacher ./pkg/attacher/cmd/csi-attacher
+# github.com/kubernetes-csi/csi-sidecars/pkg/attacher/cmd/csi-attacher
+/usr/bin/ld: /tmp/go-link-1501858949/000037.o: in function `_cgo_0adcd145e95b_Cfunc_dlopen':
+/tmp/go-build/cgo-gcc-prolog:92: warning: Using 'dlopen' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking
+/usr/bin/ld: /tmp/go-link-1501858949/000008.o: in function `mygetgrouplist':
+/_/GOROOT/src/os/user/getgrouplist_unix.go:15: warning: Using 'getgrouplist' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking
+/usr/bin/ld: /tmp/go-link-1501858949/000007.o: in function `mygetgrgid_r':
+/_/GOROOT/src/os/user/cgo_lookup_cgo.go:45: warning: Using 'getgrgid_r' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking
+/usr/bin/ld: /tmp/go-link-1501858949/000007.o: in function `mygetgrnam_r':
+/_/GOROOT/src/os/user/cgo_lookup_cgo.go:54: warning: Using 'getgrnam_r' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking
+/usr/bin/ld: /tmp/go-link-1501858949/000007.o: in function `mygetpwnam_r':
+/_/GOROOT/src/os/user/cgo_lookup_cgo.go:36: warning: Using 'getpwnam_r' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking
+/usr/bin/ld: /tmp/go-link-1501858949/000007.o: in function `mygetpwuid_r':
+/_/GOROOT/src/os/user/cgo_lookup_cgo.go:27: warning: Using 'getpwuid_r' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking
+/usr/bin/ld: /tmp/go-link-1501858949/000004.o: in function `_cgo_77133bf98b3a_C2func_getaddrinfo':
+/tmp/go-build/cgo-gcc-prolog:60: warning: Using 'getaddrinfo' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking
 + ./bin/csi-attacher --help
 Usage of ./bin/csi-attacher:
   -automaxprocs
-    	automatically set GOMAXPROCS to match Linux container CPU quota
+        automatically set GOMAXPROCS to match Linux container CPU quota
   -csi-address string
-    	Address of the CSI driver socket. (default "/run/csi/socket")
+        Address of the CSI driver socket. (default "/run/csi/socket")
   -default-fstype string
-    	The default filesystem type of the volume to use.
+        The default filesystem type of the volume to use.
   -feature-gates value
-    	A set of key=value pairs that describe feature gates for alpha/experimental features. Options are:
-    	APIResponseCompression=true|false (BETA - default=true)
-    	APIServerIdentity=true|false (BETA - default=true)
-    	APIServingWithRoutine=true|false (ALPHA - default=false)
-    	AllAlpha=true|false (ALPHA - default=false)
-    	AllBeta=true|false (BETA - default=false)
-    	AllowParsingUserUIDFromCertAuth=true|false (BETA - default=true)
-    	AllowUnsafeMalformedObjectDeletion=true|false (ALPHA - default=false)
-    	CBORServingAndStorage=true|false (ALPHA - default=false)
-    	ComponentFlagz=true|false (ALPHA - default=false)
-    	ComponentStatusz=true|false (ALPHA - default=false)
-    	ConcurrentWatchObjectDecode=true|false (BETA - default=false)
-    	CoordinatedLeaderElection=true|false (BETA - default=false)
-    	DetectCacheInconsistency=true|false (BETA - default=true)
-    	ListFromCacheSnapshot=true|false (BETA - default=true)
-    	MutableCSINodeAllocatableCount=true|false (BETA - default=false)
-    	MutatingAdmissionPolicy=true|false (BETA - default=false)
-    	OpenAPIEnums=true|false (BETA - default=true)
-    	ReleaseLeaderElectionOnExit=true|false (ALPHA - default=false)
-    	RemoteRequestHeaderUID=true|false (BETA - default=true)
-    	SizeBasedListCostEstimate=true|false (BETA - default=true)
-    	StorageVersionAPI=true|false (ALPHA - default=false)
-    	StorageVersionHash=true|false (BETA - default=true)
-    	StructuredAuthenticationConfigurationEgressSelector=true|false (BETA - default=true)
-    	TokenRequestServiceAccountUIDValidation=true|false (BETA - default=true)
-    	UnauthenticatedHTTP2DOSMitigation=true|false (BETA - default=true)
-    	WatchCacheInitializationPostStartHook=true|false (BETA - default=false)
-    	WatchList=true|false (BETA - default=true)
+        A set of key=value pairs that describe feature gates for alpha/experimental features. Options are:
+        APIResponseCompression=true|false (BETA - default=true)
+        APIServerIdentity=true|false (BETA - default=true)
+        APIServingWithRoutine=true|false (ALPHA - default=false)
+        AllAlpha=true|false (ALPHA - default=false)
+        AllBeta=true|false (BETA - default=false)
+        AllowParsingUserUIDFromCertAuth=true|false (BETA - default=true)
+        AllowUnsafeMalformedObjectDeletion=true|false (ALPHA - default=false)
+        CBORServingAndStorage=true|false (ALPHA - default=false)
+        ComponentFlagz=true|false (ALPHA - default=false)
+        ComponentStatusz=true|false (ALPHA - default=false)
+        ConcurrentWatchObjectDecode=true|false (BETA - default=false)
+        ConstrainedImpersonation=true|false (ALPHA - default=false)
+        CoordinatedLeaderElection=true|false (BETA - default=false)
+        DeclarativeValidation=true|false (BETA - default=true)
+        DeclarativeValidationTakeover=true|false (BETA - default=false)
+        DetectCacheInconsistency=true|false (BETA - default=true)
+        ListFromCacheSnapshot=true|false (BETA - default=true)
+        MutableCSINodeAllocatableCount=true|false (BETA - default=false)
+        MutatingAdmissionPolicy=true|false (BETA - default=false)
+        OpenAPIEnums=true|false (BETA - default=true)
+        ReleaseLeaderElectionOnExit=true|false (ALPHA - default=false)
+        RemoteRequestHeaderUID=true|false (BETA - default=true)
+        SizeBasedListCostEstimate=true|false (BETA - default=true)
+        StorageVersionAPI=true|false (ALPHA - default=false)
+        StorageVersionHash=true|false (BETA - default=true)
+        StructuredAuthenticationConfigurationEgressSelector=true|false (BETA - default=true)
+        StructuredAuthenticationConfigurationJWKSMetrics=true|false (BETA - default=true)
+        TokenRequestServiceAccountUIDValidation=true|false (BETA - default=true)
+        UnauthenticatedHTTP2DOSMitigation=true|false (BETA - default=true)
+        UnknownVersionInteroperabilityProxy=true|false (ALPHA - default=false)
+        WatchCacheInitializationPostStartHook=true|false (BETA - default=false)
+        WatchList=true|false (BETA - default=true)
   -http-endpoint :8080
-    	The TCP network address where the HTTP server for diagnostics, including metrics and leader election health check, will listen (example: :8080). The default is empty string, which means the server is disabled. Only one of `--metrics-address` and `--http-endpoint` can be set.
+        The TCP network address where the HTTP server for diagnostics, including metrics and leader election health check, will listen (example: :8080). The default is empty string, which means the server is disabled. Only one of `--metrics-address` and `--http-endpoint` can be set.
   -kube-api-burst int
-    	Burst to use while communicating with the kubernetes apiserver. Defaults to 10. (default 10)
+        Burst to use while communicating with the kubernetes apiserver. Defaults to 10. (default 10)
   -kube-api-qps float
-    	QPS to use while communicating with the kubernetes apiserver. Defaults to 5.0. (default 5)
+        QPS to use while communicating with the kubernetes apiserver. Defaults to 5.0. (default 5)
   -kubeconfig string
-    	Absolute path to the kubeconfig file. Required only when running out of cluster.
+        Absolute path to the kubeconfig file. Required only when running out of cluster.
   -leader-election
-    	Enable leader election.
+        Enable leader election.
   -leader-election-lease-duration duration
-    	Duration, in seconds, that non-leader candidates will wait to force acquire leadership. Defaults to 15 seconds. (default 15s)
+        Duration, in seconds, that non-leader candidates will wait to force acquire leadership. Defaults to 15 seconds. (default 15s)
   -leader-election-namespace string
-    	Namespace where the leader election resource lives. Defaults to the pod namespace if not set.
+        Namespace where the leader election resource lives. Defaults to the pod namespace if not set.
   -leader-election-renew-deadline duration
-    	Duration, in seconds, that the acting leader will retry refreshing leadership before giving up. Defaults to 10 seconds. (default 10s)
+        Duration, in seconds, that the acting leader will retry refreshing leadership before giving up. Defaults to 10 seconds. (default 10s)
   -leader-election-retry-period duration
-    	Duration, in seconds, the LeaderElector clients should wait between tries of actions. Defaults to 5 seconds. (default 5s)
+        Duration, in seconds, the LeaderElector clients should wait between tries of actions. Defaults to 5 seconds. (default 5s)
   -log-flush-frequency duration
-    	Maximum number of seconds between log flushes (default 5s)
+        Maximum number of seconds between log flushes (default 5s)
   -log-json-info-buffer-size value
-    	[Alpha] In JSON format with split output streams, the info messages can be buffered for a while to increase performance. The default value of zero bytes disables buffering. The size can be specified as number of bytes (512), multiples of 1000 (1K), multiples of 1024 (2Ki), or powers of those (3M, 4G, 5Mi, 6Gi). Enable the LoggingAlphaOptions feature gate to use this.
+        [Alpha] In JSON format with split output streams, the info messages can be buffered for a while to increase performance. The default value of zero bytes disables buffering. The size can be specified as number of bytes (512), multiples of 1000 (1K), multiples of 1024 (2Ki), or powers of those (3M, 4G, 5Mi, 6Gi). Enable the LoggingAlphaOptions feature gate to use this.
   -log-json-split-stream
-    	[Alpha] In JSON format, write error messages to stderr and info messages to stdout. The default is to write a single stream to stdout. Enable the LoggingAlphaOptions feature gate to use this.
+        [Alpha] In JSON format, write error messages to stderr and info messages to stdout. The default is to write a single stream to stdout. Enable the LoggingAlphaOptions feature gate to use this.
   -log-text-info-buffer-size value
-    	[Alpha] In text format with split output streams, the info messages can be buffered for a while to increase performance. The default value of zero bytes disables buffering. The size can be specified as number of bytes (512), multiples of 1000 (1K), multiples of 1024 (2Ki), or powers of those (3M, 4G, 5Mi, 6Gi). Enable the LoggingAlphaOptions feature gate to use this.
+        [Alpha] In text format with split output streams, the info messages can be buffered for a while to increase performance. The default value of zero bytes disables buffering. The size can be specified as number of bytes (512), multiples of 1000 (1K), multiples of 1024 (2Ki), or powers of those (3M, 4G, 5Mi, 6Gi). Enable the LoggingAlphaOptions feature gate to use this.
   -log-text-split-stream
-    	[Alpha] In text format, write error messages to stderr and info messages to stdout. The default is to write a single stream to stdout. Enable the LoggingAlphaOptions feature gate to use this.
+        [Alpha] In text format, write error messages to stderr and info messages to stdout. The default is to write a single stream to stdout. Enable the LoggingAlphaOptions feature gate to use this.
   -logging-format string
-    	Sets the log format. Permitted formats: "json" (gated by LoggingBetaOptions), "text". (default "text")
+        Sets the log format. Permitted formats: "json" (gated by LoggingBetaOptions), "text". (default "text")
   -max-entries int
-    	Max entries per each page in volume lister call, 0 means no limit.
+        Max entries per each page in volume lister call, 0 means no limit.
   -max-grpc-log-length int
-    	The maximum amount of characters logged for every grpc responses. Defaults to no limit (default -1)
+        The maximum amount of characters logged for every grpc responses. Defaults to no limit (default -1)
   -metrics-address :8080
-    	(deprecated) The TCP network address where the prometheus metrics endpoint will listen (example: :8080). The default is empty string, which means metrics endpoint is disabled. Only one of `--metrics-address` and `--http-endpoint` can be set.
+        (deprecated) The TCP network address where the prometheus metrics endpoint will listen (example: :8080). The default is empty string, which means metrics endpoint is disabled. Only one of `--metrics-address` and `--http-endpoint` can be set.
   -metrics-path /metrics
-    	The HTTP path where prometheus metrics will be exposed. Default is /metrics. (default "/metrics")
+        The HTTP path where prometheus metrics will be exposed. Default is /metrics. (default "/metrics")
   -reconcile-sync duration
-    	Resync interval of the VolumeAttachment reconciler. (default 1m0s)
+        Resync interval of the VolumeAttachment reconciler. (default 1m0s)
   -resync duration
-    	Resync interval of the controller. (default 10m0s)
+        Resync interval of the controller. (default 10m0s)
   -retry-interval-max duration
-    	Maximum retry interval of failed create volume or deletion. (default 5m0s)
+        Maximum retry interval of failed create volume or deletion. (default 5m0s)
   -retry-interval-start duration
-    	Initial retry interval of failed create volume or deletion. It doubles with each failure, up to retry-interval-max. (default 1s)
+        Initial retry interval of failed create volume or deletion. It doubles with each failure, up to retry-interval-max. (default 1s)
   -timeout duration
-    	Timeout for waiting for attaching or detaching the volume. (default 15s)
+        Timeout for waiting for attaching or detaching the volume. (default 15s)
   -v value
-    	number for the log level verbosity
+        number for the log level verbosity
   -version
-    	Show version.
+        Show version.
   -vmodule value
-    	comma-separated list of pattern=N settings for file-filtered logging (only works for text log format)
+        comma-separated list of pattern=N settings for file-filtered logging (only works for text log format)
   -worker-threads int
-    	Number of worker threads per sidecar (default 10)
+        Number of worker threads per sidecar (default 10)
