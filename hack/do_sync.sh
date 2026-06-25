@@ -6,9 +6,40 @@ if [[ $(uname) != "Linux" ]]; then
   exit 1
 fi
 
+# ==============================================================================
+# DEVELOPER WORKSPACE PATH NORMALIZATION
+# ==============================================================================
+# When developers run this synchronization script locally, their terminal output
+# and the resulting 'hack/do_sync.log' file capture absolute file paths unique to
+# their specific machine/box (e.g., '/home/mauriciopoppe.linux' or '/root').
+#
+# Since 'hack/do_sync.log' is a tracked file in version control (linked by the
+# README.md as a reference log of a successful synchronization), these absolute
+# paths cause persistent git diff noise and merge conflicts whenever different
+# developers run the tooling.
+#
+# To solve this cleanly without manual post-processing, the block below intercepts
+# the script execution. If 'NORMALIZED_LOGGING' is not active, it re-executes the
+# script and filters all stdout and stderr in real-time through GNU 'sed'.
+# Any absolute path matching the current working directory ($PWD) or the user's
+# home directory ($HOME) is replaced with generic placeholders ('$WORKSPACE'
+# and '$HOME' respectively).
+#
+# Because 'set -o pipefail' is active (line 2), the exit status of the underlying
+# execution is correctly preserved and bubbled up to the caller (or CI runner).
+# ==============================================================================
+if [[ "${NORMALIZED_LOGGING:-}" != "true" ]]; then
+  export NORMALIZED_LOGGING=true
+  escaped_pwd=$(echo "$PWD" | sed 's/[.[\*^$]/\\&/g')
+  escaped_home=$(echo "$HOME" | sed 's/[.[\*^$]/\\&/g')
+  "$0" "$@" 2>&1 | sed -u -e "s|$escaped_pwd|\$WORKSPACE|g" -e "s|$escaped_home|\$HOME|g"
+  exit $?
+fi
+
+
 if [[ -z ${VIRTUAL_ENV:-} ]]; then
   echo "This script must run within a virtual env"
-  echo "  python3 -m venv venv && source venv/bin/activate "
+  echo "  python3 -m venv .venv && source .venv/bin/activate "
   exit 1
 fi
 
@@ -90,7 +121,7 @@ commit.message = new_message.encode()
       git config user.name "CSI AIO Sync"
       git remote add external-${SIDECAR} ../external-${SIDECAR} || true
       git fetch external-${SIDECAR}
-      git merge external-${SIDECAR}/${SIDECAR_HASH} --allow-unrelated-histories --no-edit
+      git merge external-${SIDECAR}/${SIDECAR_HASH} --allow-unrelated-histories --no-edit --quiet >/dev/null
     )
 
     # Copy the sidecar files (without .git) for processing

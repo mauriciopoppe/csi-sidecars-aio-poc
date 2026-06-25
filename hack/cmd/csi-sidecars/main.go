@@ -92,6 +92,7 @@ var (
 	nodeDeploymentMaxDelay         = flag.Duration("provisioner-node-deployment-max-delay", 60*time.Second, "Determines how long the external-provisioner sleeps at most before trying to own a PVC with immediate binding.")
 	controllerPublishReadOnly      = flag.Bool("provisioner-controller-publish-readonly", false, "This option enables PV to be marked as readonly at controller publish volume call if PVC accessmode has been set to ROX.")
 	preventVolumeModeConversion    = flag.Bool("provisioner-prevent-volume-mode-conversion", true, "Prevents an unauthorised user from modifying the volume mode when creating a PVC from an existing VolumeSnapshot.")
+	snapshotOrphanSweepInterval    = flag.Duration("provisioner-snapshot-orphan-sweep-interval", 5*time.Minute, "How often to check for orphaned snapshot source-protection finalizers. Set to 0 to disable the sweep controller.")
 	provisionController            *controller.ProvisionController
 
 	// Resizer specific

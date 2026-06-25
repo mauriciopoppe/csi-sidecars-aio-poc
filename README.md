@@ -42,7 +42,7 @@ After cloning the repo, run the following commands to start from scratch:
 # cleanup first
 ./hack/do_cleanup.sh
 # setup venv, clone repos with history, setup go workspaces and build
-python3 -m venv venv && source venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 ./hack/do_sync.sh 2>&1 | tee hack/do_sync.log
 ```
 
