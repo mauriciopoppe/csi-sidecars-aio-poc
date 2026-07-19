@@ -317,10 +317,16 @@ fi
 
 # The new entrypoint for all the sidecars
 symlink_from_root_to_hack hack/cmd/csi-sidecars/main.go
+# Tooling tests for the AIO entrypoint (parseControllers, config->global mapping).
+symlink_from_root_to_hack hack/cmd/csi-sidecars/main_test.go
 # The utility global function to register common and per-sidecar flags.
 symlink_from_root_to_hack hack/cmd/csi-sidecars/config/flags.go
+# Tooling tests for the AIO flag registration.
+symlink_from_root_to_hack hack/cmd/csi-sidecars/config/flags_test.go
 # The utility glofal functions to register attacher flags.
 symlink_from_root_to_hack hack/pkg/attacher/cmd/csi-attacher/config/flags.go
+# Tooling tests for the attacher flag registration.
+symlink_from_root_to_hack hack/pkg/attacher/cmd/csi-attacher/config/flags_test.go
 
 # Create merged go.mod
 cat <<EOF >go.mod
