@@ -1,8 +1,51 @@
 #!/bin/bash
-set -euxo pipefail
+set -euo pipefail
 
-if [[ $(uname) != "Linux" ]]; then
+# ==============================================================================
+# ARGUMENT PARSING
+# ==============================================================================
+# --dry-run/-n enables a side-effect-free preview: the script performs NO
+# clones, history rewrites, deletions, file mutations, module updates or builds;
+# it prints the full plan of what it would do and exits. See dry_run_plan below.
+DRY_RUN=false
+for _arg in "$@"; do
+  case "${_arg}" in
+    -n | --dry-run) DRY_RUN=true ;;
+    -h | --help)
+      cat <<'USAGE'
+Usage: hack/do_sync.sh [options]
+
+Synchronize the kubernetes-csi sidecars into this all-in-one repository.
+
+Options:
+  -n, --dry-run   Preview every action (clones, history rewrites, deletions,
+                  file rewrites, module updates, builds) without making any
+                  change, then exit.
+  -h, --help      Show this help and exit.
+
+Environment:
+  SKIP_SANITY_CHECK=true  Skip the k8s.io dependency-drift sanity check.
+USAGE
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: ${_arg} (see --help)" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# xtrace is helpful for a real run but makes the dry-run plan noisy, so only
+# enable it when actually mutating.
+if [[ ${DRY_RUN} != "true" ]]; then
+  set -x
+fi
+
+# The real sync only works on Linux, but --dry-run is a safe, read-only preview
+# and is allowed anywhere (e.g. to inspect the plan from macOS).
+if [[ ${DRY_RUN} != "true" ]] && [[ $(uname) != "Linux" ]]; then
   echo "This script only works in Linux arm64/amd64, yours is $(uname)"
+  echo "(You can still preview the plan with: $0 --dry-run)"
   exit 1
 fi
 
@@ -37,36 +80,127 @@ if [[ "${NORMALIZED_LOGGING:-}" != "true" ]]; then
 fi
 
 
-if [[ -z ${VIRTUAL_ENV:-} ]]; then
-  echo "This script must run within a virtual env"
-  echo "  python3 -m venv .venv && source .venv/bin/activate "
-  exit 1
-fi
+# These preconditions enforce/install prerequisites, so they are only run for a
+# real sync. In dry-run mode the plan reports them instead (see dry_run_plan).
+if [[ ${DRY_RUN} != "true" ]]; then
+  if [[ -z ${VIRTUAL_ENV:-} ]]; then
+    echo "This script must run within a virtual env"
+    echo "  python3 -m venv .venv && source .venv/bin/activate "
+    exit 1
+  fi
 
-if ! command -v git-filter-repo >/dev/null; then
-  echo "git-filter-repo is required, installing it..."
-  pip install git-filter-repo
+  if ! command -v git-filter-repo >/dev/null; then
+    echo "git-filter-repo is required, installing it..."
+    pip install git-filter-repo
+  fi
 fi
 
 # Set to true to skip the sanity checks.
 SKIP_SANITY_CHECK="${SKIP_SANITY_CHECK:-}"
 
-DRY_RUN="${DRY_RUN:-false}"
-# cond_exec executes arguments if DRY_RUN=true, otherwise it just echo them
-cond_exec() {
-  if [[ $DRY_RUN == "true" ]]; then
-    eval $@
-  fi
-  echo $@
+# run_step echoes the command it is about to run, then executes it directly via
+# "$@" (no eval; only simple commands without shell builtins, redirections or
+# pipes may be passed). Used for the build/smoke-test checkpoints so each step
+# is visible in the log. (Dry-run never reaches these; it exits earlier after
+# printing the plan, see dry_run_plan.)
+run_step() {
+  echo "+ $*"
+  "$@"
 }
 
-if [[ ! $(go version) =~ go1.2[6-9] ]]; then
+# plan prints a single line describing an action the script would take. Used to
+# build the dry-run plan. Prefixed so the preview is easy to scan/grep.
+plan() {
+  echo "  [plan] $*"
+}
+
+# dry_run_plan prints the complete, side-effect-free plan of everything the
+# script would do for a full (from-scratch) sync. It intentionally does NOT
+# touch the filesystem, network or git; the caller exits right after. It mirrors
+# the real steps below, so the two must be kept in sync when the workflow changes.
+dry_run_plan() {
+  local sidecars="attacher provisioner resizer snapshotter"
+
+  echo "=============================================================="
+  echo " DRY RUN: no clones, deletions, rewrites or builds will happen"
+  echo "=============================================================="
+  echo
+  echo "Preconditions that WOULD be enforced:"
+  plan "require Linux (current: $(uname))"
+  plan "require an active Python virtualenv (VIRTUAL_ENV)"
+  plan "require git-filter-repo (pip install it if missing)"
+  plan "require go 1.26+ (current: $(go version 2>/dev/null || echo 'go not found'))"
+  echo
+  echo "Scaffolding that WOULD be created:"
+  plan "mkdir -p tmp pkg cmd/csi-sidecars staging/src/github.com/kubernetes-csi"
+  plan "git init tmp/csi-sidecars (merged commit-history repo) if absent"
+  echo
+  for s in ${sidecars}; do
+    echo "Sidecar '${s}' (only when pkg/${s} is absent):"
+    plan "git clone https://github.com/kubernetes-csi/external-${s} -> tmp/external-${s}"
+    plan "git filter-repo: move history under pkg/${s}, annotate Imported-from/Original-commit-hash"
+    plan "merge rewritten history into tmp/csi-sidecars"
+    plan "cp -a tmp/external-${s}/pkg/${s} -> pkg/${s}"
+    plan "collect go.mod require/replace/k8sapi lines into tmp/gomod-*.txt"
+    plan "delete vendored/CI cruft (.github vendor release-tools go.mod go.sum Dockerfile .prow.sh Makefile ...)"
+    if [[ "${s}" == "snapshotter" ]]; then
+      plan "snapshotter-only: also delete client/{.git,go.mod,go.sum,hack} CHANGELOG examples deploy hack SECURITY_CONTACTS ..."
+    fi
+    plan "rewrite import paths external-${s}/... -> csi-sidecars/pkg/${s}/... (sed -i, leaves .bak files)"
+    plan "fold cmd/csi-${s}/*.go entrypoints into cmd/csi-sidecars/${s}_*.go (strip main(), flags, logging setup)"
+    if [[ "${s}" == "attacher" ]]; then
+      plan "attacher-only: rewrite standardflags.Configuration.* -> global vars"
+      plan "attacher-only: rm pkg/attacher/cmd/csi-attacher/main.go, symlink the forked hack/ main.go"
+    fi
+    echo
+  done
+  echo "Standalone snapshotter binaries:"
+  plan "cp pkg/snapshotter/cmd/snapshot-controller/*.go       -> cmd/snapshot-controller/"
+  plan "cp pkg/snapshotter/cmd/snapshot-conversion-webhook/*.go -> cmd/snapshot-conversion-webhook/"
+  echo
+  echo "Sanity checks:"
+  if [[ ${SKIP_SANITY_CHECK} == "true" ]]; then
+    plan "k8s.io dependency-drift check: SKIPPED (SKIP_SANITY_CHECK=true)"
+  else
+    plan "verify all sidecars agree on a single k8s.io/api version (else abort)"
+  fi
+  echo
+  echo "Tracked sources symlinked into the tree:"
+  plan "hack/cmd/csi-sidecars/main.go, main_test.go, config/flags.go, config/flags_test.go"
+  plan "hack/pkg/attacher/cmd/csi-attacher/config/flags.go, flags_test.go"
+  echo
+  echo "Module + build files that WOULD be generated:"
+  plan "write merged go.mod (module github.com/kubernetes-csi/csi-sidecars, go 1.26, require/replace blocks)"
+  plan "write Makefile (CMDS + release-tools/build.make include)"
+  plan "git clone csi-lib-utils -> staging/src/github.com/kubernetes-csi/csi-lib-utils, add local replace directive"
+  plan "go work init/use ./staging/.../csi-lib-utils; go mod tidy; go work vendor"
+  echo
+  echo "Build & smoke-test checkpoints that WOULD run:"
+  plan "go test ./cmd/... ./pkg/attacher/cmd/... (tooling unit tests)"
+  plan "make build"
+  plan "./bin/csi-sidecars --help"
+  plan "go build ./pkg/attacher/cmd/csi-attacher -> ./bin/csi-attacher; ./bin/csi-attacher --help"
+  plan "./bin/snapshot-controller --help"
+  plan "./bin/snapshot-conversion-webhook --help"
+  echo
+  echo "=============================================================="
+  echo " DRY RUN complete. Re-run without --dry-run to apply."
+  echo "=============================================================="
+}
+
+if [[ ${DRY_RUN} != "true" ]] && [[ ! $(go version) =~ go1.2[6-9] ]]; then
   echo "Install go1.26+, please read the README.md"
   exit 1
 fi
 TRASH="trash"
-if ! command -v trash; then
+if ! command -v trash >/dev/null 2>&1; then
   TRASH="rm -rf"
+fi
+
+# In dry-run mode, print the full plan and exit before touching anything.
+if [[ ${DRY_RUN} == "true" ]]; then
+  dry_run_plan
+  exit 0
 fi
 
 mkdir -p tmp pkg cmd/csi-sidecars/ staging/src/github.com/kubernetes-csi/
@@ -130,7 +264,10 @@ commit.message = new_message.encode()
     cat pkg/${SIDECAR}/go.mod | grep "	" | grep -v "indirect" >>tmp/gomod-require.txt
 
     # NOTE: the sed command is to keep consistent package relies among different repos.
-    cat pkg/${SIDECAR}/go.mod | { grep "replace " || [[ $? == 1 ]]; } | sed 's/v0.35.0/v0.35.2/g' | { grep -v "=> ./client" || [[ $? == 1 ]]; } >>tmp/gomod-replace.txt
+    # The sed pipeline also deletes the "=> ./client" replace line directly via
+    # its address-delete command, avoiding an extra grep -v with pipefail-safe
+    # exit-code handling.
+    cat pkg/${SIDECAR}/go.mod | { grep "replace " || [[ $? == 1 ]]; } | sed -e 's/v0.35.0/v0.35.2/g' -e '\#=> ./client#d' >>tmp/gomod-replace.txt
 
 
     # Checks for drifts in k8s.io/api, drifts in core dependencies are sometimes impossible to solve
@@ -374,19 +511,24 @@ go work use ./staging/src/github.com/kubernetes-csi/csi-lib-utils
 go mod tidy
 go work vendor
 
+# checkpoint: run the tooling unit tests (flag registration + AIO entrypoint
+# helpers). These only exist after the symlinks above are in place and the
+# merged module resolves, so they run here rather than from the repo root.
+run_step go test ./cmd/csi-sidecars/... ./pkg/attacher/cmd/csi-attacher/config/...
+
 # checkpoint: test that we can build the project.
-make build
-./bin/csi-sidecars --help || true
+run_step make build
+run_step ./bin/csi-sidecars --help || true
 
 # checkpoint for individual sidecar refactor: test that we can build attacher
-go build -a -ldflags ' -X main.version=foo -extldflags "-static"' -o ./bin/csi-attacher ./pkg/attacher/cmd/csi-attacher
-./bin/csi-attacher --help || true
+run_step go build -a -ldflags ' -X main.version=foo -extldflags "-static"' -o ./bin/csi-attacher ./pkg/attacher/cmd/csi-attacher
+run_step ./bin/csi-attacher --help || true
 
 # checkpoint: test that snapshot-controller builds as a standalone binary
-./bin/snapshot-controller --help || true
+run_step ./bin/snapshot-controller --help || true
 
 # checkpoint: test that snapshot-conversion-webhook builds as a standalone binary
-./bin/snapshot-conversion-webhook --help || true
+run_step ./bin/snapshot-conversion-webhook --help || true
 
 # cat <<'EOF' >Dockerfile
 # FROM gcr.io/distroless/static:latest

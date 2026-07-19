@@ -19,6 +19,11 @@ Currently the list includes:
 - kubernetes-csi/external-attacher
 - kubernetes-csi/external-resizer
 - kubernetes-csi/external-provisioner
+- kubernetes-csi/external-snapshotter
+
+The snapshotter integration additionally produces two standalone binaries,
+`snapshot-controller` and `snapshot-conversion-webhook`, alongside the merged
+`csi-sidecars` binary.
 
 For more information please look at the following resources:
 
