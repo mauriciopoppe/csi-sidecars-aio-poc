@@ -17,9 +17,9 @@ type AttacherConfiguration struct {
 }
 
 func registerAttacherFlags(flags *flag.FlagSet, configuration *AttacherConfiguration, prefix string) {
-	flag.IntVar(&configuration.MaxEntries, prefix+"max-entries", 0, "Max entries per each page in volume lister call, 0 means no limit.")
-	flag.DurationVar(&configuration.ReconcileSync, prefix+"reconcile-sync", 1*time.Minute, "Resync interval of the VolumeAttachment reconciler.")
-	flag.IntVar(&configuration.MaxGRPCLogLength, prefix+"max-grpc-log-length", -1, "The maximum amount of characters logged for every grpc responses. Defaults to no limit")
+	flags.IntVar(&configuration.MaxEntries, prefix+"max-entries", 0, "Max entries per each page in volume lister call, 0 means no limit.")
+	flags.DurationVar(&configuration.ReconcileSync, prefix+"reconcile-sync", 1*time.Minute, "Resync interval of the VolumeAttachment reconciler.")
+	flags.IntVar(&configuration.MaxGRPCLogLength, prefix+"max-grpc-log-length", -1, "The maximum amount of characters logged for every grpc responses. Defaults to no limit")
 	flags.IntVar(&configuration.WorkerThreads, prefix+"worker-threads", 10, "Number of worker threads per sidecar")
 	flags.StringVar(&configuration.DefaultFSType, prefix+"default-fstype", "", "The default filesystem type of the volume to use.")
 	flags.DurationVar(&configuration.Timeout, prefix+"timeout", 15*time.Second, "Timeout for waiting for attaching or detaching the volume.")
