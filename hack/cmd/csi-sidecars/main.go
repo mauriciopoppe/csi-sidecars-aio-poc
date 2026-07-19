@@ -169,6 +169,22 @@ func copyFlagsFromConfigToGlobalVars() {
 
 }
 
+// parseControllers parses the comma-separated --controllers value into a set of
+// enabled controller names. Empty entries (from a leading/trailing/duplicate
+// comma or an empty value) are ignored so that an empty string yields an empty
+// set rather than a set containing "".
+func parseControllers(s string) map[string]bool {
+	enabled := map[string]bool{}
+	for _, ctrl := range strings.Split(s, ",") {
+		ctrl = strings.TrimSpace(ctrl)
+		if ctrl == "" {
+			continue
+		}
+		enabled[ctrl] = true
+	}
+	return enabled
+}
+
 func main() {
 	flag.Var(utilflag.NewMapStringBool(&featureGates), "feature-gates", "A set of key=value pairs that describe feature gates for alpha/experimental features. "+
 		"Options are:\n"+strings.Join(utilfeature.DefaultFeatureGate.KnownFeatures(), "\n"))
@@ -207,10 +223,7 @@ func main() {
 
 	errs, ctx := errgroup.WithContext(context.Background())
 
-	controllersToEnable := map[string]bool{}
-	for _, ctrl := range strings.Split(*&config.Configuration.Controllers, ",") {
-		controllersToEnable[ctrl] = true
-	}
+	controllersToEnable := parseControllers(config.Configuration.Controllers)
 
 	// TODO: Get main from each sidecar to return an error so we can handle it here
 	if _, ok := controllersToEnable["attacher"]; ok {
