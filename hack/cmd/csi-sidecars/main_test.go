@@ -82,6 +82,15 @@ func TestParseControllers(t *testing.T) {
 // equal values) by mutating the source config and observing the global var
 // through its pointer.
 func TestCopyFlagsFromConfigToGlobalVars(t *testing.T) {
+	// Restore the package-global config.Configuration after the test so we do
+	// not leak the sentinel values below into any other test in this package.
+	// config.Configuration and its nested *Configuration structs are all value
+	// types, so a plain struct copy is a complete snapshot.
+	original := config.Configuration
+	t.Cleanup(func() {
+		config.Configuration = original
+	})
+
 	// Set distinct sentinel values on the source config so a mis-aliased
 	// pointer would surface as a wrong/zero value.
 	config.Configuration.Master = "https://master.example"
