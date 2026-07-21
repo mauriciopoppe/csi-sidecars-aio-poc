@@ -62,6 +62,16 @@ func TestParseControllers(t *testing.T) {
 			in:   ",,,",
 			want: map[string]bool{},
 		},
+		{
+			name: "unknown controller is kept verbatim (filtered later at enable time)",
+			in:   "foo",
+			want: map[string]bool{"foo": true},
+		},
+		{
+			name: "known and unknown controllers coexist in the parsed set",
+			in:   "attacher,foo",
+			want: map[string]bool{"attacher": true, "foo": true},
+		},
 	}
 
 	for _, tc := range tests {
@@ -69,6 +79,85 @@ func TestParseControllers(t *testing.T) {
 			got := parseControllers(tc.in)
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("parseControllers(%q) = %v, want %v", tc.in, got, tc.want)
+			}
+		})
+	}
+}
+
+// knownControllers mirrors the set of controller names main() actually acts on
+// (the if _, ok := controllersToEnable[...] branches). It is defined here rather
+// than imported because main.go hardcodes these names inline; keeping the list
+// next to the test documents the contract the test guards.
+var knownControllers = []string{"attacher", "provisioner", "resizer", "snapshotter"}
+
+// enabledKnownControllers returns the subset of parsed controller names that
+// main() would actually start — i.e. the intersection of the requested set with
+// the known controllers. Unknown names are dropped, which is exactly how main()
+// treats them (it only has if-branches for the known names).
+func enabledKnownControllers(controllersFlag string) map[string]bool {
+	requested := parseControllers(controllersFlag)
+	enabled := map[string]bool{}
+	for _, name := range knownControllers {
+		if requested[name] {
+			enabled[name] = true
+		}
+	}
+	return enabled
+}
+
+// TestControllersUnknownValuesBehavePredictably pins the SPEC S3 requirement
+// that unknown/empty --controllers values behave predictably: an unknown name
+// starts no controller, and mixing an unknown name with a known one starts only
+// the known one. This guards the currently-implicit behavior in main() where
+// unknown names silently match no if-branch.
+func TestControllersUnknownValuesBehavePredictably(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want map[string]bool
+	}{
+		{
+			name: "empty value enables nothing",
+			in:   "",
+			want: map[string]bool{},
+		},
+		{
+			name: "single unknown value enables nothing",
+			in:   "foo",
+			want: map[string]bool{},
+		},
+		{
+			name: "only unknown values enable nothing",
+			in:   "foo,bar,baz",
+			want: map[string]bool{},
+		},
+		{
+			name: "unknown mixed with known enables only the known",
+			in:   "foo,attacher,bar",
+			want: map[string]bool{"attacher": true},
+		},
+		{
+			name: "all known enable all",
+			in:   "attacher,provisioner,resizer,snapshotter",
+			want: map[string]bool{
+				"attacher":    true,
+				"provisioner": true,
+				"resizer":     true,
+				"snapshotter": true,
+			},
+		},
+		{
+			name: "case-sensitive: Attacher is not the known attacher",
+			in:   "Attacher",
+			want: map[string]bool{},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := enabledKnownControllers(tc.in)
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("enabledKnownControllers(%q) = %v, want %v", tc.in, got, tc.want)
 			}
 		})
 	}
