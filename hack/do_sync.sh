@@ -51,15 +51,6 @@ fi
 # Set to true to skip the sanity checks.
 SKIP_SANITY_CHECK="${SKIP_SANITY_CHECK:-}"
 
-# run_step echoes the command it is about to run, then executes it directly via
-# "$@" (no eval; only simple commands without shell builtins, redirections or
-# pipes may be passed). Used for the build/smoke-test checkpoints so each step
-# is visible in the log.
-run_step() {
-  echo "+ $*"
-  "$@"
-}
-
 if [[ ! $(go version) =~ go1.2[6-9] ]]; then
   echo "Install go1.26+, please read the README.md"
   exit 1
@@ -377,24 +368,30 @@ go work use ./staging/src/github.com/kubernetes-csi/csi-lib-utils
 go mod tidy
 go work vendor
 
+# Echo each checkpoint command before running it so every step is visible in
+# the log.
+set -x
+
 # checkpoint: run the tooling unit tests (flag registration + AIO entrypoint
 # helpers). These only exist after the symlinks above are in place and the
 # merged module resolves, so they run here rather than from the repo root.
-run_step go test ./cmd/csi-sidecars/... ./pkg/attacher/cmd/csi-attacher/config/...
+go test ./cmd/csi-sidecars/... ./pkg/attacher/cmd/csi-attacher/config/...
 
 # checkpoint: test that we can build the project.
-run_step make build
-run_step ./bin/csi-sidecars --help || true
+make build
+./bin/csi-sidecars --help || true
 
 # checkpoint for individual sidecar refactor: test that we can build attacher
-run_step go build -a -ldflags ' -X main.version=foo -extldflags "-static"' -o ./bin/csi-attacher ./pkg/attacher/cmd/csi-attacher
-run_step ./bin/csi-attacher --help || true
+go build -a -ldflags ' -X main.version=foo -extldflags "-static"' -o ./bin/csi-attacher ./pkg/attacher/cmd/csi-attacher
+./bin/csi-attacher --help || true
 
 # checkpoint: test that snapshot-controller builds as a standalone binary
-run_step ./bin/snapshot-controller --help || true
+./bin/snapshot-controller --help || true
 
 # checkpoint: test that snapshot-conversion-webhook builds as a standalone binary
-run_step ./bin/snapshot-conversion-webhook --help || true
+./bin/snapshot-conversion-webhook --help || true
+
+set +x
 
 # cat <<'EOF' >Dockerfile
 # FROM gcr.io/distroless/static:latest
