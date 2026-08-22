@@ -13,12 +13,17 @@ As a side effect we also:
 - Reduce the memory usage/API server calls done by the CSI Sidecars through the usage of a shared informer.
 - Reduce the cluster resource requirements needed to run the CSI Sidecars.
 
-This repo accomplishes merging the CSI sidecar codebases into a monorepo through the `./hack/do_sync.sh` script.
+This repo accomplishes merging the CSI sidecar codebases into a monorepo through the `./tools/scripts/sync.sh` script.
 Currently the list includes:
 
 - kubernetes-csi/external-attacher
 - kubernetes-csi/external-resizer
 - kubernetes-csi/external-provisioner
+- kubernetes-csi/external-snapshotter
+
+The snapshotter integration additionally produces two standalone binaries,
+`snapshot-controller` and `snapshot-conversion-webhook`, alongside the merged
+`csi-sidecars` binary.
 
 For more information please look at the following resources:
 
@@ -40,16 +45,19 @@ After cloning the repo, run the following commands to start from scratch:
 
 ```bash
 # cleanup first
-./hack/do_cleanup.sh
+./tools/scripts/cleanup.sh
 # setup venv, clone repos with history, setup go workspaces and build
 python3 -m venv .venv && source .venv/bin/activate
-./hack/do_sync.sh 2>&1 | tee hack/do_sync.log
+./tools/scripts/sync.sh 2>&1 | tee tools/sync.log
 ```
 
-Logs: [./hack/do_sync.log](./hack/do_sync.log)
+Logs: [./tools/sync.log](./tools/sync.log)
 
 The sync script clones each sidecar repo preserving their commit history
 (using `git-filter-repo`). The full commit history is available at `pkg/<sidecar>/.git`.
+
+See [CODE_LAYOUT.md](./CODE_LAYOUT.md) for the dual-layer layout that separates
+the hand-maintained `tools/` source of truth from the generated assembly area.
 
 ### Building the project using CI
 
@@ -63,7 +71,7 @@ act push
 ### E2E tests through the Hostpath CSI Driver
 
 - Go over the slides above.
-- Make sure that the project was built locally. The `do_sync.sh` command should exit with status code 0.
+- Make sure that the project was built locally. The `sync.sh` command should exit with status code 0.
 
 WARNING: The following nukes your $GOPATH/src/k8s.io/ directory. Please read .prow.sh.log
 and find the `git clean -fdx` command (which removes untracked files).

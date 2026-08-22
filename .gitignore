@@ -3,5 +3,5 @@
 venv
 .DS_Store
 
-!/hack/do_sync.log
+!/tools/sync.log
 !.prow.sh.log

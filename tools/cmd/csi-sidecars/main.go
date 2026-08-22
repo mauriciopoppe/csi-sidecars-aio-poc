@@ -20,6 +20,7 @@ import (
 	"context"
 	goflag "flag"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -51,6 +52,8 @@ var (
 	workers                     *int
 	timeout                     *time.Duration
 	operationTimeout            *time.Duration
+	resizeTimeout               *time.Duration
+	modifyTimeout               *time.Duration
 	retryIntervalStart          *time.Duration
 	retryIntervalMax            *time.Duration
 	enableLeaderElection        *bool
@@ -157,6 +160,10 @@ func copyFlagsFromConfigToGlobalVars() {
 	timeout = &config.Configuration.AttacherConfiguration.Timeout
 	operationTimeout = &config.Configuration.AttacherConfiguration.Timeout
 
+	// Resizer-specific per-call timeouts (upstream --resize-timeout/--modify-timeout).
+	resizeTimeout = &config.Configuration.ResizeTimeout
+	modifyTimeout = &config.Configuration.ModifyTimeout
+
 	// Snapshotter-specific flags
 	snapshotNamePrefix = &config.Configuration.SnapshotterConfiguration.SnapshotNamePrefix
 	snapshotNameUUIDLength = &config.Configuration.SnapshotterConfiguration.SnapshotNameUUIDLength
@@ -167,6 +174,60 @@ func copyFlagsFromConfigToGlobalVars() {
 	groupSnapshotNameUUIDLength = &config.Configuration.SnapshotterConfiguration.GroupSnapshotNameUUIDLength
 	snapshotterExtraCreateMetadata = &config.Configuration.SnapshotterConfiguration.ExtraCreateMetadata
 
+}
+
+// parseControllers parses the comma-separated --controllers value into a set of
+// enabled controller names. Empty entries (from a leading/trailing/duplicate
+// comma or an empty value) are ignored so that an empty string yields an empty
+// set rather than a set containing "".
+func parseControllers(s string) map[string]bool {
+	enabled := map[string]bool{}
+	for _, ctrl := range strings.Split(s, ",") {
+		ctrl = strings.TrimSpace(ctrl)
+		if ctrl == "" {
+			continue
+		}
+		enabled[ctrl] = true
+	}
+	return enabled
+}
+
+// knownControllers is the set of controller names main() can start, i.e. the
+// valid values for --controllers.
+var knownControllers = map[string]bool{
+	"attacher":    true,
+	"provisioner": true,
+	"resizer":     true,
+	"snapshotter": true,
+}
+
+func knownControllerNames() []string {
+	names := make([]string, 0, len(knownControllers))
+	for name := range knownControllers {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
+}
+
+// validateControllers rejects an empty selection and names main() cannot start,
+// so a typo or a missing --controllers fails loudly instead of running a
+// process that starts no controller and silently exits.
+func validateControllers(enabled map[string]bool) error {
+	if len(enabled) == 0 {
+		return fmt.Errorf("no controllers enabled, --controllers must list at least one of: %s", strings.Join(knownControllerNames(), ", "))
+	}
+	var unknown []string
+	for name := range enabled {
+		if !knownControllers[name] {
+			unknown = append(unknown, name)
+		}
+	}
+	if len(unknown) > 0 {
+		sort.Strings(unknown)
+		return fmt.Errorf("unknown controllers: %s, valid values are: %s", strings.Join(unknown, ", "), strings.Join(knownControllerNames(), ", "))
+	}
+	return nil
 }
 
 func main() {
@@ -207,9 +268,9 @@ func main() {
 
 	errs, ctx := errgroup.WithContext(context.Background())
 
-	controllersToEnable := map[string]bool{}
-	for _, ctrl := range strings.Split(*&config.Configuration.Controllers, ",") {
-		controllersToEnable[ctrl] = true
+	controllersToEnable := parseControllers(config.Configuration.Controllers)
+	if err := validateControllers(controllersToEnable); err != nil {
+		klog.Fatal(err)
 	}
 
 	// TODO: Get main from each sidecar to return an error so we can handle it here

@@ -1,0 +1,28 @@
+# Mark auto-generated content so GitHub collapses it in PR reviews and excludes
+# it from language statistics (linguist-generated).
+#
+# NOTE: The assembly area (pkg/, staging/, cmd/) is produced by
+# tools/scripts/sync.sh and is NOT committed to version control, so those paths
+# normally never appear in a diff. The entries below are defensive: if a
+# generated artifact is ever committed, it stays collapsed.
+
+# The reference sync log is tracked (linked from README) and is fully generated.
+tools/sync.log linguist-generated=true
+
+# Assembly area / synced upstream code (defensive; usually untracked).
+# sync.sh mirrors *every* non-test .go file from pkg/<sidecar>/cmd/csi-<sidecar>/
+# into cmd/csi-sidecars/, so match the whole tree rather than the filenames that
+# happen to exist today.
+pkg/**      linguist-generated=true
+staging/**  linguist-generated=true
+cmd/**      linguist-generated=true
+
+# Exceptions: these assembly-area paths are symlinks to the hand-maintained
+# source of truth under tools/.
+cmd/csi-sidecars/main.go                            -linguist-generated
+cmd/csi-sidecars/main_test.go                       -linguist-generated
+cmd/csi-sidecars/config/flags.go                    -linguist-generated
+cmd/csi-sidecars/config/flags_test.go               -linguist-generated
+pkg/attacher/cmd/csi-attacher/main.go               -linguist-generated
+pkg/attacher/cmd/csi-attacher/config/flags.go       -linguist-generated
+pkg/attacher/cmd/csi-attacher/config/flags_test.go  -linguist-generated

@@ -9,7 +9,7 @@ jobs:
     runs-on: [ubuntu-latest]
     strategy:
       matrix:
-        go: ["1.26.0"]
+        go: ["1.26.5"]
     steps:
     - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
     - uses: actions/setup-go@v5
@@ -21,16 +21,16 @@ jobs:
     - run: |
         echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
     - run: go version
-    - run: ./hack/do_cleanup.sh
+    - run: ./tools/scripts/cleanup.sh
     - run: |
         python3 -m venv .venv && source .venv/bin/activate
-        ./hack/do_sync.sh
+        ./tools/scripts/sync.sh
 
   e2e-hostpath:
     runs-on: [ubuntu-latest]
     strategy:
       matrix:
-        go: ["1.26.0"]
+        go: ["1.26.5"]
     steps:
     - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
     - uses: actions/setup-go@v5
@@ -42,9 +42,9 @@ jobs:
     - run: |
         echo "GOPATH=$(go env GOPATH)" >> $GITHUB_ENV
     - run: go version
-    - run: ./hack/do_cleanup.sh 2>&1
+    - run: ./tools/scripts/cleanup.sh 2>&1
     - run: |
         python3 -m venv .venv && source .venv/bin/activate
-        ./hack/do_sync.sh 2>&1
+        ./tools/scripts/sync.sh 2>&1
     - run: ./.prow.sh 2>&1
     - run:  grep "Ginkgo ran" -B 4 .prow.sh.log
